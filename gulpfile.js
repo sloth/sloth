@@ -15,13 +15,13 @@ var runSequence = require("run-sequence");
 
 var paths = {};
 paths.dist = "resources/public/";
-paths.app = "resources/"
+paths.app = "resources/assets/";
 paths.js = [
-    "resources/js/stanza/stanzaio.bundle.min.js"
+    paths.app + "js/stanza/stanzaio.bundle.min.js"
 ]
 
 gulp.task("scss", function() {
-    return gulp.src(paths.app + "styles/app/main.scss")
+    return gulp.src(paths.app + "scss/main.scss")
         .pipe(plumber())
         .pipe(scss({bundleExec: true,
                     "sourcemap=none": true}))
