@@ -9,7 +9,9 @@
 
                  ;; Backend dependencies
                  [jarohen/nomad "0.7.0"]
+                 [hiccup "1.0.5"]
                  [compojure "1.3.1"]
+                 [com.stuartsierra/component "0.2.2"]
                  [ring/ring-core "1.3.2" :exclusions [javax.servlet/servlet-api
                                                       org.clojure/tools.reader]]
                  [cc.qbits/jet "0.5.1"]
@@ -34,8 +36,18 @@
                            :optimizations :none
                            :source-map true
                            ;; :preamble ["react/react.js"]
-                           }}]}
+                           }}
+               {:id "release"
+                :source-paths ["src/cljs"]
+                :compiler {:output-to "resources/public/js/app.js"
+                           :optimizations :advanced
+                           :pretty-print false
+                           :preamble ["react/react.min.js"]
+                           :externs ["react/externs/react.js"]}}]}
 
   :jar-exclusions [#"user.clj"]
   :target-path "target/%s"
-  :profiles {:standalone {:main ^:skip-aot openslack.core}})
+  :jvm-opts ["-Dnomad.env=devel"]
+  :profiles {:standalone {:main ^:skip-aot openslack.core}
+             :release {:main ^:skip-aot openslack.core
+                       :jvm-opts ["-Dnomad.env=release"]}})

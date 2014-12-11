@@ -1,22 +1,26 @@
 (ns openslack.core
-  (:require [qbits.jet.server :refer [run-jetty]]
-            [compojure.core :refer :all]
-            [compojure.route :as route]
-            [compojure.response :refer [render]]
-            [clojure.java.io :as io])
+  (:require [com.stuartsierra.component :as component]
+            [clojure.core.async :refer [chan <!!]]
+            [openslack.config :refer [configuration]]
+            [openslack.web :refer [web]])
   (:gen-class))
 
-(defn home
-  [req]
-  (render (io/resource "index.html") req))
 
-;; Routes definition
-(defroutes app
-  (GET "/" [] home)
-  (route/resources "/static")
-  (route/not-found "<h1>Page not found</h1>"))
+(defn make-system
+  "OpenSlack system constructor."
+  []
+  (-> (component/system-map
+       :config (configuration)
+       :web (web))
+      (component/system-using
+       {:web [:config]})))
 
-;; Application entry point
+(defn initialize
+  []
+  (component/start (make-system)))
+
 (defn -main
   [& args]
-  (run-jetty {:ring-handler app :port 5050}))
+  (let [lock (chan 1)]
+    (initialize)
+    (<!! lock)))
