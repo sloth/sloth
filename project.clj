@@ -8,6 +8,7 @@
                  [org.clojure/tools.namespace "0.2.5"]
 
                  ;; Backend dependencies
+                 [jarohen/nomad "0.7.0"]
                  [compojure "1.3.1"]
                  [ring/ring-core "1.3.2" :exclusions [javax.servlet/servlet-api
                                                       org.clojure/tools.reader]]

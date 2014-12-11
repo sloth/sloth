@@ -8,4 +8,7 @@ pom.xml.asc
 /.lein-*
 /.nrepl-port
 resources/public/js/*
-
+resources/public/styles/*
+.sass-cache
+vendor
+node_modules

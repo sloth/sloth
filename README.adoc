@@ -30,6 +30,58 @@ Compiling ClojureScript.
 Compiling "resources/public/js/app.js" from ["src/cljs"]...
 ----
 
+
+=== Frontend development dependencies
+
+As first step, you need *ruby*, *nodejs*, *bundler*, *gulp* and *bower* installed.
+
+Install ruby and nodejs from your operating system package manager.
+
+
+Install bundler using _gem_ in a user home directory:
+
+----
+$ gem install --user-install bundler
+----
+
+This installs the binaries that comes in gem's in location like
+this: _~/.gem/ruby/2.1.0/bin/_, and you should add this path to you PATH
+variable.
+
+Having ruby and bundler installed, you need install all dependencies
+for sass compiler:
+
+----
+$ bundle install
+Fetching gem metadata from https://rubygems.org/.............
+Installing sass 3.4.9
+Installing thor 0.19.1
+Installing bourbon 4.0.2
+Using bundler 1.7.9
+Your bundle is complete!
+It was installed into ./vendor
+----
+
+Install gulp at operating system level:
+
+----
+$ sudo npm install -g gulp bower
+----
+
+And, now, having gulp installed, install all dependencies needed for running
+gulp:
+
+----
+$ npm install
+----
+
+After having installed all dependencies, execute gulp for compile _scss_ files:
+
+----
+$ gulp
+----
+
+
 === Browser enabled REPL
 
 All dependencies and settings for making work browser enabled repl

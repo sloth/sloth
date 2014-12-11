@@ -1,0 +1,19 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    bourbon (4.0.2)
+      sass (~> 3.3)
+      thor
+    rainbow (2.0.0)
+    sass (3.4.9)
+    scss-lint (0.31.0)
+      rainbow (~> 2.0)
+      sass (~> 3.4.1)
+    thor (0.19.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bourbon
+  scss-lint
