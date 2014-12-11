@@ -2,7 +2,8 @@
   (:require [com.stuartsierra.component :as component]
             [clojure.core.async :refer [chan <!!]]
             [openslack.config :refer [configuration]]
-            [openslack.web :refer [web]])
+            [openslack.web :refer [web]]
+            [openslack.bots.experiment :refer [toy-xmpp-bot]])
   (:gen-class))
 
 
@@ -11,9 +12,11 @@
   []
   (-> (component/system-map
        :config (configuration)
-       :web (web))
+       :web (web)
+       :toybot (toy-xmpp-bot))
       (component/system-using
-       {:web [:config]})))
+       {:web [:config]
+        :toybot [:config]})))
 
 (defn initialize
   []

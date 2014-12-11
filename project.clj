@@ -18,6 +18,12 @@
                  [com.cemerick/piggieback "0.1.3"]
                  [weasel "0.4.2"]
 
+                 ;; XMPP components
+                 [org.igniterealtime.smack/smack-core "4.0.6"]
+                 [org.igniterealtime.smack/smack-tcp "4.0.6"]
+                 [org.igniterealtime.smack/smack-extensions "4.0.6"]
+                 [org.igniterealtime.smack/smack-experimental "4.0.6"]
+
                  ;; Frontend dependencies
                  [org.clojure/clojurescript "0.0-2411"]
                  [secretary "1.2.1"]
