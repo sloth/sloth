@@ -108,3 +108,44 @@ Type `:cljs/quit` to stop the ClojureScript REPL
 nil
 cljs.user=>
 ----
+
+
+=== Setup XMPP server (ejabberd)
+
+Install ejabberd using your package manager. In case of Archlinux execute as root:
+
+----
+# pacman -S ejabberd
+----
+
+Now, having server installed you have different ways to start it. If you want
+start a server temporary, you can do it directly with _ejabberdctl_ command:
+
+----
+# For start server
+ejabberdctl start
+
+# For stop server
+ejabberdctl stop
+----
+
+Server started with ejabberdctl allow interact with them without changing the user.
+
+An other way (recommended) is starting it using the systemd:
+
+----
+systemctl start ejabberd
+----
+
+In this case, if you want interact with server using _ejabberdctl_ command, you should
+change to ejabberd user (using `su - ejabberd`)
+
+I recommend setup empty password for ejabberd user for make easy access to it
+from your standard user, avoiding the the step of jump to root user.
+
+
+Now, as _ejabberd_ user, create an user in ejabberd server:
+
+----
+ejabberdctl register user localhost password
+----
