@@ -5,6 +5,7 @@
             :url "http://opensource.org/licenses/BSD-2-Clause"}
   :dependencies [[org.clojure/clojure "1.7.0-alpha4"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
+                 [org.clojure/tools.namespace "0.2.5"]
 
                  ;; Backend dependencies
                  [compojure "1.3.1"]
@@ -34,5 +35,6 @@
                            ;; :preamble ["react/react.js"]
                            }}]}
 
+  :jar-exclusions [#"user.clj"]
   :target-path "target/%s"
-  :main ^:skip-aot openslack.core)
+  :profiles {:standalone {:main ^:skip-aot openslack.core}})

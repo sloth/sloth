@@ -1,0 +1,61 @@
+= OpenSlack
+
+== How to start
+
+This assumes that you have _leiningen_ installed.
+
+=== Backend
+
+Used mainly for serve the index.html in / and for future
+development of xmpp components (only for integrations).
+
+----
+$ git clone git@github.com:niwibe/openslack.git
+$ cd openslack
+$ lein with-profile standalone run
+2014-12-11 13:44:21.803:INFO::main: Logging initialized @4524ms
+2014-12-11 13:44:22.880:INFO:oejs.Server:main: jetty-9.2.5.v20141112
+2014-12-11 13:44:22.904:INFO:oejs.ServerConnector:main: Started ServerConnector@4a59d584{HTTP/1.1}{0.0.0.0:5050}
+2014-12-11 13:44:22.905:INFO:oejs.Server:main: Started @5639ms
+----
+
+=== ClojureScript compiler
+
+Used for the obvious task of compile the frontend application.
+
+----
+$ cd openslack
+$ lein cljsbuild auto devel
+Compiling ClojureScript.
+Compiling "resources/public/js/app.js" from ["src/cljs"]...
+----
+
+=== Browser enabled REPL
+
+All dependencies and settings for making work browser enabled repl
+are ready, but disabled by default.
+
+For enable it, uncomment the `(ws-repl/connect ...)` on
+_src/cljs/openslack/core.cljs_.
+
+And start the browser enabled repl.
+
+----
+$ lein repl
+nREPL server started on port 57849 on host 127.0.0.1 - nrepl://127.0.0.1:57849
+REPL-y 0.3.5, nREPL 0.2.6
+Clojure 1.7.0-alpha4
+OpenJDK 64-Bit Server VM 1.8.0_25-b18
+    Docs: (doc function-name-here)
+          (find-doc "part-of-name-here")
+  Source: (source function-name-here)
+ Javadoc: (javadoc java-object-or-class-here)
+    Exit: Control+D or (exit) or (quit)
+ Results: Stored in vars *1, *2, *3, an exception in *e
+
+user=> (brepl)
+<< started Weasel server on ws://0.0.0.0:9001 >>
+Type `:cljs/quit` to stop the ClojureScript REPL
+nil
+cljs.user=>
+----
