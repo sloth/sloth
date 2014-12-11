@@ -2,12 +2,12 @@
 
 == How to start
 
-This assumes that you have _leiningen_ installed.
+First of all, install link:http://leiningen.org/[leiningen].
 
 === Backend
 
-Used mainly for serve the index.html in / and for future
-development of xmpp components (only for integrations).
+Used mainly for serving the index.html in / and for future
+development of XMPP components (only for integrations).
 
 ----
 $ git clone git@github.com:niwibe/openslack.git
@@ -21,7 +21,7 @@ $ lein with-profile standalone run
 
 === ClojureScript compiler
 
-Used for the obvious task of compile the frontend application.
+Used for compiling the frontend application.
 
 ----
 $ cd openslack
@@ -30,13 +30,11 @@ Compiling ClojureScript.
 Compiling "resources/public/js/app.js" from ["src/cljs"]...
 ----
 
-
 === Frontend development dependencies
 
-As first step, you need *ruby*, *nodejs*, *bundler*, *gulp* and *bower* installed.
+You need *ruby*, *nodejs*, *bundler*, *gulp* and *bower* installed.
 
 Install ruby and nodejs from your operating system package manager.
-
 
 Install bundler using _gem_ in a user home directory:
 
@@ -49,7 +47,7 @@ this: _~/.gem/ruby/2.1.0/bin/_, and you should add this path to you PATH
 variable.
 
 Having ruby and bundler installed, you need install all dependencies
-for sass compiler:
+for the SASS compiler:
 
 ----
 $ bundle install
@@ -80,7 +78,6 @@ After having installed all dependencies, execute gulp for compile _scss_ files:
 ----
 $ gulp
 ----
-
 
 === Browser enabled REPL
 
