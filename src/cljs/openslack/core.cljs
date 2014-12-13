@@ -26,7 +26,7 @@
   (let [mv (<! (mlet-with async/either-pipeline-monad
                  [jid (xmpp/start-session client)
                   roster (xmpp/get-roster client)]
-                 (m/return {:jid jid,:roster roster})))]
+                 (m/return {:jid jid, :roster roster})))]
       (if (either/right? mv)
         (print "JID: " (:jid (either/from-either mv))))
         (print "Roster: " (:roster (either/from-either mv)))))
