@@ -1,1 +1,4 @@
-{:web {:port 5051}}
+{:web {:port 5051}
+ :toybot {:username "toybot"
+          :password "123123"
+          :domain "niwi.be"}}

@@ -1,42 +1,66 @@
 (ns openslack.bots.experiment
-  (:require [com.stuartsierra.component :as component])
-  (:import org.jivesoftware.smack.tcp.XMPPTCPConnection
-           org.jivesoftware.smack.MessageListener
-           org.jivesoftware.smack.ChatManager
-           org.jivesoftware.smack.ChatManagerListener))
+  (:require [com.stuartsierra.component :as component]
+            [clojure.core.async :refer [go <! go-loop alts!]]
+            [openslack.xmpp :as xmpp]))
 
+(defn handle-incoming-messages
+  [conn]
+  (let [chatm    (xmpp/chat-manager conn)
+        messages (xmpp/listen-messages chatm)]
+    (go-loop []
+      (let [[chat message] (<! messages)]
+        (println "RECEIVED: " message)
+        (recur)))))
 
-(defn- make-connection
-  []
-  (let [conn (XMPPTCPConnection. "localhost")]
-    (.connect conn)
-    (.login conn "testuser" "123123", "Bot")
-    conn))
+(defn handle-roster-events
+  [conn]
+  (let [roster (xmpp/get-roster conn)
+        events (xmpp/listen-roster roster)]
+    (go-loop []
+      (let [[etype data] (<! events)]
+        (println "roster event" etype ":" data)
+        (recur)))))
 
+(defn handle-incoming-packets
+  [conn]
+  (let [packets (xmpp/listen-packets conn)]
+    (go-loop []
+      (let [packet (<! packets)]
+        (println "*******************************")
+        (println "received packed: " (.getFrom packet) packet)
+        (println "extension: " (.getExtension packet "urn:xmpp:delay")))
+      (recur))))
 
-(defn make-message-listener
-  []
-  (reify MessageListener
-    (processMessage [this chat message]
-      (println "RECEIVED:" message)
-      (.sendMessage chat message))))
+(defn handle-muc
+  [conn]
+  (let [invitations (xmpp/listen-muc-invitations conn)]
+    (go-loop [chans [invitations]]
+      (let [[v c] (alts! chans)]
+        (condp = c
+          invitations
+          (let [{:keys [muc password]} v]
+            (println "Invitation" muc (.getRoom muc))
+            (xmpp/join! muc "toybot" password)
+            (recur (conj chans (xmpp/listen-messages muc))))
 
-(defn make-chat-listener
-  []
-  (reify ChatManagerListener
-    (chatCreated [_ chat locally?]
-      (println "Chat created" chat)
-      (when-not locally?
-        (.addMessageListener chat (make-message-listener))))))
+          (let [[chat message] v]
+            ;; (println "muc message" message chat)
+            (recur chans)))))))
 
+(defn initialize-service
+  [conn]
+  (handle-incoming-messages conn)
+  (handle-muc conn)
+  (handle-roster-events conn)
+  (handle-incoming-packets conn))
 
 (defrecord ToyXMPPBot [config]
   component/Lifecycle
   (start [component]
     (println "Start toy xmpp bot.")
-    (let [conn (make-connection)
-          chatmanager (ChatManager/getInstanceFor conn)]
-      (.addChatListener chatmanager (make-chat-listener))
+    (let [config (get config :toybot)
+          conn   (xmpp/connection config)]
+      (initialize-service conn)
       (assoc component :connection conn)))
 
   (stop [component]
