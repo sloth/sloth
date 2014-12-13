@@ -29,7 +29,10 @@
                  [secretary "1.2.1"]
                  [sablono "0.2.22" :exclusions [com.facebook/react]]
                  [om "0.8.0-beta3"]
-                 [hodgepodge "0.1.0"]]
+                 [hodgepodge "0.1.0"]
+
+                 ;; Shared dependencies
+                 [cats "0.2.0"]]
 
   :source-paths ["src/clj"]
   :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
