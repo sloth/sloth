@@ -5,7 +5,7 @@
             :url "http://opensource.org/licenses/BSD-2-Clause"}
   :dependencies [[org.clojure/clojure "1.7.0-alpha4"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                 [org.clojure/tools.namespace "0.2.5"]
+                 [org.clojure/tools.namespace "0.2.7"]
 
                  ;; Backend dependencies
                  [jarohen/nomad "0.7.0"]
