@@ -47,9 +47,11 @@
                 (m/return {:user user, :roster roster, :room room})))]
     (when (either/right? mv)
       (xmpp/send-presence client)
+      (xmpp/update-capabilities client)
       (let [{:keys [user roster room]} (either/from-either mv)]
         (swap! state assoc :user user)
         (swap! state assoc :roster roster)
+        (swap! state assoc :features (xmpp/get-features client))
         (swap! state #(st/join-room room %))))))
 
 ; TODO: roster-updating process

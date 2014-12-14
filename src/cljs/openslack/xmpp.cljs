@@ -173,8 +173,8 @@
 
 ;; Service discovery
 
-(defn current-capabilities [client]
-  (js->clj (.-discoInfo (.getCurrentCaps client))))
+(defn get-features [client]
+  (js->clj (.-features (.-discoInfo (.getCurrentCaps client)))))
 
 (defn update-capabilities [client]
   (.updateCaps client))

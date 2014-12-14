@@ -3,6 +3,7 @@
 ; TODO: schema of state?
 (defn make-initial-state []
   {:client nil
+   :features []
    :roster []
    :user nil
    :conversations {:chat {}, :groupchat {}}})
