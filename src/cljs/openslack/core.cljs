@@ -16,20 +16,63 @@
 ;; Enable println
 (enable-console-print!)
 
-(def xmpp-config {:jid "dialelo@niwi.be"
-                  :password "dragon"
+;; Application state
+
+(def state (atom {}))
+
+(def xmpp-config {:jid "homer@niwi.be"
+                  :password "donuts"
                   :transports ["bosh"]
                   :boshURL "http://niwi.be:5280/http-bind"})
-(def client (xmpp/create-client xmpp-config))
 
+(def client (xmpp/create-client xmpp-config))
+(set! js/window.cl client)
+
+;; Start XMPP session
 (go
   (let [mv (<! (mlet-with async/either-pipeline-monad
-                 [jid (xmpp/start-session client)
-                  roster (xmpp/get-roster client)]
-                 (m/return {:jid jid, :roster roster})))]
-      (if (either/right? mv)
-        (print "JID: " (:jid (either/from-either mv))))
-        (print "Roster: " (:roster (either/from-either mv)))))
+                [jid (xmpp/start-session client)
+                 roster (xmpp/get-roster client)]
+                (m/return {:jid jid, :roster roster})))]
+    (when (either/right? mv)
+      (reset! state (either/from-either mv)))))
+
+; TODO: roster-updating process
+(def roster-updates-chan (xmpp/roster-updates client))
+(go (loop []
+      (let [rupdate (<! roster-updates-chan)
+            subscription (:subscription rupdate)
+            jid (:jid rupdate)
+            bare (:bare jid)]
+        (case (:subscription rupdate)
+          :none :none ; TODO: fill this in
+          :both :both
+          :to   :to
+          :from :from))
+      (recur)))
+
+; TODO: chat and groupchat updating process
+(def chats-chan (xmpp/chats client))
+(go (loop []
+      (let [chat (<! chats-chan)
+            type (:type chat)]
+        (println "chat: " chat)
+        (case type
+          :chat :chat ; TODO: fill this in
+          :groupchat :groupchat
+          ))
+      (recur)))
+
+; TODO: chat-states updating process
+(def chat-states-chan (xmpp/chat-states client))
+(go (loop []
+      (let [chat-state (<! chat-states-chan)]
+        (println "chat-state: " chat-state))
+      (recur)))
+
+; TODO: subscription-managing process
+(def subscriptions-chan (xmpp/subscriptions client))
+(def unsubscriptions-chan (xmpp/unsubscriptions client))
 
 ;; Enable browser enabled repl.
 ;; (ws-repl/connect "ws://localhost:9001")
