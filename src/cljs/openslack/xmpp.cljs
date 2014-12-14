@@ -219,7 +219,6 @@
 
 (defn raw-room->room
   [rroom]
-  (.log js/console "rroom " rroom)
   {:from (raw-jid->jid (.-from rroom))
    :type (keyword (.-type rroom))})
 
