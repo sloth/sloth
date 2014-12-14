@@ -6,7 +6,7 @@
             [cljs.core.async :refer [<!]]
             [secretary.core :as secretary :refer-macros [defroute]]
             [weasel.repl :as ws-repl]
-            [openslack.utils :as utils]
+            [openslack.events :as events]
             [openslack.xmpp :as xmpp]
             [openslack.async :as async]
             [cats.core :as m]
@@ -38,7 +38,7 @@
   []
   (let [history (History.)]
     (go
-      (let [event (<! (utils/listen history "navigate"))]
+      (let [event (<! (events/listen history "navigate"))]
         (secretary/dispatch! (.-token event))))
     (.setEnabled history true)))
 

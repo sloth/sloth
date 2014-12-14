@@ -1,4 +1,4 @@
-(ns openslack.utils
+(ns openslack.events
   (:require [cljs.core.async :refer [<! put! chan]]
             [goog.events :as events]))
 
@@ -11,4 +11,3 @@
                       (when (nil? r)
                         (events/unlisten target event)))))
    ch))
-
