@@ -214,3 +214,17 @@
   (let [c (async/chan 10 (map raw-chat-state->chat-state))]
     (.on client "chat:state" (partial async/put! c))
     c))
+
+;; MUC
+
+(defn raw-room->room
+  [rroom]
+  (.log js/console "rroom " rroom)
+  {:from (raw-jid->jid (.-from rroom))
+   :type (keyword (.-type rroom))})
+
+(defn join-room [client room nick]
+  (let [c (async/chan 10 (map (comp either/right raw-room->room)))]
+    (.once client "muc:join" (partial async/put! c))
+    (.joinRoom client room nick)
+    c))

@@ -13,7 +13,7 @@
         (html [:h2 "Roster"
                [:ul
                 (for [user (:roster state)]
-                  [:li (-> user :jid :local)])]])))))
+                  [:li (get-in user [:jid :local])])]])))))
 
 (defn user [state owner]
   (reify

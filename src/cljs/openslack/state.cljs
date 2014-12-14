@@ -13,6 +13,12 @@
         from (-> chat :from :bare)]
     (update-in app-state [:conversations type from] (fnil conj []) chat)))
 
+(defn join-room
+  [room app-state]
+  (let [type :groupchat
+        from (-> room :from :bare)]
+    (update-in app-state [:conversations type from] (fnil empty []))))
+
 (defn update-chat-state
   [chat-state app-state]
   nil)

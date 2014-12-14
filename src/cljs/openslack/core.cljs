@@ -42,13 +42,15 @@
 (go
   (let [mv (<! (mlet-with async/either-pipeline-monad
                 [user (xmpp/start-session client)
-                 roster (xmpp/get-roster client)]
-                (m/return {:user user, :roster roster})))]
+                 roster (xmpp/get-roster client)
+                 room (xmpp/join-room client "testroom@conference.niwi.be" "dialelo")]
+                (m/return {:user user, :roster roster, :room room})))]
     (when (either/right? mv)
       (xmpp/send-presence client)
-      (let [{:keys [user roster]} (either/from-either mv)]
+      (let [{:keys [user roster room]} (either/from-either mv)]
         (swap! state assoc :user user)
-        (swap! state assoc :roster roster)))))
+        (swap! state assoc :roster roster)
+        (swap! state #(st/join-room room %))))))
 
 ; TODO: roster-updating process
 (def roster-updates-chan (xmpp/roster-updates client))
