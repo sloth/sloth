@@ -13,12 +13,15 @@
 (defn disconnect [client]
   (.disconnect client))
 
-(defn send-presence [client presence]
+(defn send-presence
   "Send a presence stanza.
 
      http://xmpp.org/rfcs/rfc3921.html#presence
 
   Examples:
+
+   ; Simple presence signaling
+   (xmpp/send-presence client)
 
    ; Presence with status information
    (xmpp/send-presence client {:status \"Happy!\"})
@@ -30,7 +33,10 @@
    (xmpp/send-presence client {:status \"Away!\"
                                :show :away})
   "
-  (.sendPresence client (clj->js presence)))
+  ([client]
+     (.sendPresence client))
+  ([client presence]
+     (.sendPresence client (clj->js presence))))
 
 (defn send-message [client msg]
   "Send a message stanza.
@@ -121,7 +127,7 @@
                                                        (either/left (keyword (.-condition (.-error ritem))))
                                                        (either/right (js->clj ritem)))
                                                      (async/put! c))))
-o    c))
+    c))
 
 (defn accept-subscription [client jid]
   (.acceptSubscription client jid))
@@ -200,12 +206,10 @@ o    c))
     (.on client "chat" (partial async/put! c))
     c))
 
-; TODO: untested
 (defn raw-chat-state->chat-state [rchatstate]
-  {:jid (raw-jid->jid (.-jid rchatstate))
+  {:from (raw-jid->jid (.-from rchatstate))
    :state (keyword (.-state rchatstate))})
 
-; TODO: untested
 (defn chat-states [client]
   (let [c (async/chan 10 (map raw-chat-state->chat-state))]
     (.on client "chat:state" (partial async/put! c))
