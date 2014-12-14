@@ -5,8 +5,7 @@
   {:client nil
    :roster []
    :user nil
-   :conversations {:chat {}, :groupchat {}}
-   :groupchats {}})
+   :conversations {:chat {}, :groupchat {}}})
 
 (defn add-chat
   [chat app-state]

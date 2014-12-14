@@ -72,10 +72,10 @@
 
 ; TODO: chat-states updating process
 (def chat-states-chan (xmpp/chat-states client))
-(go (loop []
-      (let [chat-state (<! chat-states-chan)]
-        (println "chat-state: " chat-state))
-      (recur)))
+(go-loop [chat-state (<! chat-states-chan)]
+  (println "chat-state: " chat-state)
+  (recur (<! chat-states-chan)))
+
 
 ; TODO: subscription-managing process
 (def subscriptions-chan (xmpp/subscriptions client))

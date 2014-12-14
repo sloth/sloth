@@ -208,7 +208,7 @@
 
 (defn raw-chat-state->chat-state [rchatstate]
   {:from (raw-jid->jid (.-from rchatstate))
-   :state (keyword (.-state rchatstate))})
+   :state (keyword (.-chatState rchatstate))})
 
 (defn chat-states [client]
   (let [c (async/chan 10 (map raw-chat-state->chat-state))]
