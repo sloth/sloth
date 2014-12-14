@@ -1,24 +1,21 @@
-var gulp = require("gulp")
-
-var concat = require("gulp-concat");
-var uglify = require("gulp-uglify");
-var plumber = require("gulp-plumber");
-var rename = require("gulp-rename");
-var jade = require("gulp-jade");
-var scss = require("gulp-ruby-sass")
-
-var wrap = require("gulp-wrap");
-var uglify = require("gulp-uglify");
-var template = require("gulp-template");
-var del = require("del");
-var runSequence = require("run-sequence");
+var gulp = require("gulp"),
+    concat = require("gulp-concat"),
+    uglify = require("gulp-uglify"),
+    plumber = require("gulp-plumber"),
+    rename = require("gulp-rename"),
+    jade = require("gulp-jade"),
+    scss = require("gulp-ruby-sass"),
+    wrap = require("gulp-wrap"),
+    template = require("gulp-template"),
+    del = require("del"),
+    runSequence = require("run-sequence");
 
 var paths = {};
 paths.dist = "resources/public/";
 paths.app = "resources/assets/";
 paths.js = [
     paths.app + "js/stanza/stanzaio.bundle.min.js"
-]
+];
 
 gulp.task("scss", function() {
     return gulp.src(paths.app + "scss/main.scss")
@@ -29,7 +26,7 @@ gulp.task("scss", function() {
         .pipe(gulp.dest(paths.dist + "styles/"));
 });
 
-gulp.task("styles", ["scss"])
+gulp.task("styles", ["scss"]);
 
 gulp.task("js", function() {
     return gulp.src(paths.js)
@@ -57,8 +54,23 @@ gulp.task("watch", function() {
     gulp.watch(paths.fonts, ["copy-fonts"]);
 });
 
+gulp.task("serve", function(){
+    var express = require("express");
+
+    var app = express(),
+        resources = __dirname + "/" + paths.dist;
+
+    app.use("/static", express.static(resources));
+    app.all("/*", function(req, res, next){
+        res.sendFile("index.html", {root: resources});
+    });
+
+    app.listen(9000);
+});
+
 gulp.task("default", [
     "styles",
     "js",
-    "watch"
+    "watch",
+    "serve"
 ]);

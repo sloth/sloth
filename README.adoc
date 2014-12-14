@@ -73,7 +73,9 @@ gulp:
 $ npm install
 ----
 
-After having installed all dependencies, execute gulp for compile _scss_ files:
+After having installed all dependencies, execute gulp for compile _scss_ files. Gulp
+serves the application in link:http://localhost:9000[localhost's 9000 port] for convenience,
+so there's no need to run the backend:
 
 ----
 $ gulp
