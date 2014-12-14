@@ -12,7 +12,7 @@
   (let [type (:type chat)
         from (-> chat :from :bare)]
     (update-in app-state [:conversations type from] (fnil conj []) chat)))
-[]
+
 (defn update-chat-state
   [chat-state app-state]
   nil)
