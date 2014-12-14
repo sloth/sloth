@@ -4,7 +4,7 @@
 (defn make-initial-state []
   {:client nil
    :roster []
-   :jid nil
+   :user nil
    :conversations {:chat {}, :groupchat {}}
    :groupchats {}})
 

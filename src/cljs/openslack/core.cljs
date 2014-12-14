@@ -10,6 +10,7 @@
             [openslack.events :as events]
             [openslack.xmpp :as xmpp]
             [openslack.async :as async]
+            [openslack.views :as views]
             [cats.core :as m]
             [cats.monad.either :as either])
   (:import goog.History))
@@ -27,8 +28,8 @@
 
 ;; XMPP
 
-(def xmpp-config {:jid "homer@niwi.be"
-                  :password "donuts"
+(def xmpp-config {:jid "dialelo@niwi.be"
+                  :password "dragon"
                   :transports ["bosh"]
                   :boshURL "http://niwi.be:5280/http-bind"})
 (def client (xmpp/create-client xmpp-config))
@@ -40,13 +41,13 @@
 
 (go
   (let [mv (<! (mlet-with async/either-pipeline-monad
-                [jid (xmpp/start-session client)
+                [user (xmpp/start-session client)
                  roster (xmpp/get-roster client)]
-                (m/return {:jid jid, :roster roster})))]
+                (m/return {:user user, :roster roster})))]
     (when (either/right? mv)
       (xmpp/send-presence client)
-      (let [{:keys [jid roster]} (either/from-either mv)]
-        (swap! state assoc :jid jid)
+      (let [{:keys [user roster]} (either/from-either mv)]
+        (swap! state assoc :user user)
         (swap! state assoc :roster roster)))))
 
 ; TODO: roster-updating process
@@ -89,6 +90,10 @@
     (go
       (let [event (<! (events/listen history "navigate"))]
         (secretary/dispatch! (.-token event))))
-    (.setEnabled history true)))
+    (.setEnabled history true))
+
+  (om/root views/app state {:target (js/document.querySelector "#app")})
+
+  )
 
 (main)
