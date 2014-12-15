@@ -2,7 +2,8 @@
 
 ; TODO: schema of state?
 (defn make-initial-state []
-  {:client nil
+  {:page nil
+   :client nil
    :features []
    :roster []
    :user nil

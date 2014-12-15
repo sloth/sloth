@@ -4,16 +4,14 @@
   (:require [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
             [cljs.core.async :refer [<!]]
-            [secretary.core :as secretary :refer-macros [defroute]]
             [weasel.repl :as ws-repl]
+            [openslack.routing :refer [start-history!]]
             [openslack.state :as st]
-            [openslack.events :as events]
             [openslack.xmpp :as xmpp]
             [openslack.async :as async]
             [openslack.views :as views]
             [cats.core :as m]
-            [cats.monad.either :as either])
-  (:import goog.History))
+            [cats.monad.either :as either]))
 
 ;; Enable println
 
@@ -86,12 +84,7 @@
 
 (defn main
   []
-  (let [history (History.)]
-    (go
-      (let [event (<! (events/listen history "navigate"))]
-        (secretary/dispatch! (.-token event))))
-    (.setEnabled history true))
-
+  (start-history!)
   (om/root views/app st/state {:target (js/document.querySelector "#app")})
 
 )
