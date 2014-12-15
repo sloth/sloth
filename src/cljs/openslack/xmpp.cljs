@@ -204,6 +204,7 @@
 (defn chats [client]
   (let [c (async/chan 10 (map raw-chat->chat))]
     (.on client "chat" (partial async/put! c))
+    (.on client "groupchat" (partial async/put! c))
     c))
 
 (defn raw-chat-state->chat-state [rchatstate]
