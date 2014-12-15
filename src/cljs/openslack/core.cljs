@@ -46,7 +46,7 @@
         (swap! st/state assoc :user user)
         (swap! st/state assoc :roster roster)
         (swap! st/state assoc :features (xmpp/get-features client))
-        (swap! st/state #(st/join-room room %))))))
+        (swap! st/state st/join-room room)))))
 
 ; TODO: roster-updating process
 (def roster-updates-chan (xmpp/roster-updates client))
@@ -86,7 +86,6 @@
   []
   (start-history!)
   (om/root views/app st/state {:target (js/document.querySelector "#app")})
-
 )
 
 (main)
