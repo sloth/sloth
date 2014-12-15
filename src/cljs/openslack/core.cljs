@@ -1,6 +1,5 @@
 (ns openslack.core
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]]
-                   [cats.core :refer [mlet-with]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
             [cljs.core.async :refer [<!]]
