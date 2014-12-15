@@ -11,8 +11,8 @@
 
 (defn navigate
   [token]
-  (.setToken history token))
-
+  (.setToken history (.replace token #"^#" ""))
+  (secretary/dispatch! (.getToken history)))
 
 (defn start-history!
   []
@@ -30,27 +30,28 @@
 ;; Routes
 
 (defroute home-route "/" []
-  (if (:user @st/state)
-    (swap! st/state assoc :page {:name :home})
+  (if (st/logged-in?)
+    (swap! st/state assoc :page {:state :home})
     (navigate "/login")))
 
 (defroute login-route "/login" []
-  (if (:user @st/state)
+  (if (st/logged-in?)
     (navigate "")
-    (swap! st/state assoc :page {:name :login})))
+    (swap! st/state assoc :page {:state :login})))
 
-(defroute room-route "/room/:jid" [jid]
-  (if (:user @st/state)
-    (swap! st/state assoc :page {:name :room, :jid jid})
+(defroute room-route "/room/:name" [name]
+  (.log js/console "ROOOM " name)
+  (if (st/logged-in?)
+    (swap! st/state assoc :page {:state :room, :room name})
     (navigate "/login")))
 
 (defroute contact-route "/contact/:jid" [jid]
-  (if (:user @st/state)
-    (swap! st/state assoc :page {:name :contact, :jid jid})
+  (if (st/logged-in?)
+    (swap! st/state assoc :page {:state :contact, :jid jid})
     (navigate "/login")))
 
 (defroute catch-all-route "*" []
   ; FIXME: invalid route
-  (if (:user @st/state)
+  (if (st/logged-in?)
     (navigate "")
     (navigate "/login")))
