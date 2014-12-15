@@ -18,13 +18,9 @@
 ;; Enable println
 
 (enable-console-print!)
-
-;; App state
-
-(def state (atom (st/make-initial-state)))
-
-(add-watch state :log (fn [_ _ _ newval]
-                        (print newval)))
+(add-watch st/state :log (fn [_ _ _ newval]
+                           (println "State transition! ")
+                           (println newval)))
 
 ;; XMPP
 
@@ -35,7 +31,7 @@
 (def client (xmpp/create-client xmpp-config))
 
 (set! js/window.cl client)
-(swap! state assoc :client client)
+(swap! st/state assoc :client client)
 
 ;; Start XMPP session
 
@@ -49,10 +45,10 @@
       (xmpp/send-presence client)
       (xmpp/update-capabilities client)
       (let [{:keys [user roster room]} (either/from-either mv)]
-        (swap! state assoc :user user)
-        (swap! state assoc :roster roster)
-        (swap! state assoc :features (xmpp/get-features client))
-        (swap! state #(st/join-room room %))))))
+        (swap! st/state assoc :user user)
+        (swap! st/state assoc :roster roster)
+        (swap! st/state assoc :features (xmpp/get-features client))
+        (swap! st/state #(st/join-room room %))))))
 
 ; TODO: roster-updating process
 (def roster-updates-chan (xmpp/roster-updates client))
@@ -71,7 +67,7 @@
 ; Chat updating process
 (def chats-chan (xmpp/chats client))
 (go-loop [chat (<! chats-chan)]
- (swap! state st/add-chat chat)
+ (swap! st/state st/add-chat chat)
  (recur (<! chats-chan)))
 
 ; TODO: chat-states updating process
@@ -96,8 +92,8 @@
         (secretary/dispatch! (.-token event))))
     (.setEnabled history true))
 
-  (om/root views/app state {:target (js/document.querySelector "#app")})
+  (om/root views/app st/state {:target (js/document.querySelector "#app")})
 
-  )
+)
 
 (main)

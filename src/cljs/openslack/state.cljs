@@ -8,6 +8,8 @@
    :user nil
    :conversations {:chat {}, :groupchat {}}})
 
+(defonce state (atom (make-initial-state)))
+
 (defn add-chat
   [chat app-state]
   (let [type (:type chat)
