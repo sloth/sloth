@@ -1,2 +1,187 @@
 @import "dependencies/bourbon";
+@import "dependencies/mixing";
 @import "dependencies/reset";
+@import "dependencies/fonts";
+@import "dependencies/colors";
+@import "sidebar";
+
+body, html {
+  height: 100%;
+}
+
+html, body, div, span, applet, object, iframe,
+, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  font-family: inherit;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: $links;
+  text-decoration: none;
+  &:hover {
+    color: $links-hover;
+  }
+}
+h1, h2, h3, h4, h5, h6 {
+  -webkit-font-smoothing: antialiased;
+  font-family: MNT;
+}
+
+strong {
+  font-weight: bold;
+}
+
+.client {
+  height: 100%;
+  width: 100%;
+  @include display(flex);
+  @include justify-content(space-between);
+  .client-sidebar-holder {
+    @include flex-grow(0);
+    @include flex-shrink(0);
+    background: $sidebar-background;
+    width: 240px;
+  }
+  .client-main {
+    @include flex-grow(2);
+    background: #FFFFFE;
+  }
+}
+
+.client-main {
+  font-family: Arial;
+  @include display(flex);
+  @include flex-direction(column);
+  header {
+    @include display(flex);
+    @include flex-grow(0);
+    @include flex-shrink(0);
+    @include align-items(center);
+    padding: 1em;
+    h1 {
+      @include flex-shrink(0);
+      font-family: MNT;
+      overflow: hidden;
+    }
+    h2 {
+      @include flex-shrink(0);
+      @include flex-grow(2);
+      font-family: QS;
+      padding-left: 1em;
+      overflow: hidden;
+    }
+  }
+  hr {
+    @include flex-grow(0);
+    @include flex-shrink(0);
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: solid 1px #333;
+    height: 1px;
+    margin: 0 1em;
+  }
+  .chat-zone {
+    @include display(flex);
+    @include flex-grow(1);
+  }
+  .chat-container {
+    @include flex-grow(2);
+    @include display(flex);
+    @include flex-direction(column);
+    .messages-container {
+      @include flex-grow(1);
+      overflow: auto;
+    }
+
+  }
+  .chat-sidebar-holder {
+    background: red;
+    display: none;
+    @include flex-grow(0);
+    @include flex-shrink(0);
+    width: 350px;
+    sidebar {
+      background: yellow;
+      height: 100%;
+      position: fixed;
+      margin-left: 20px;
+      width: 330px;
+    }
+  }
+}
+
+.message {
+  @include display(flex);
+  padding-left: 0.5em;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+  &.highlighted {
+    background: darken($main-background, 12%);
+  }
+  .message-avatar {
+    @include flex-grow(0);
+    @include flex-shrink(0);
+    padding: 10px 5px 10px 0;
+    width: 35px;
+  }
+  .message-content {
+    @include flex-grow(1);
+    padding: 10px 5px;
+  }
+  .message-title {
+    padding: 0.2em 0 0;
+    strong {
+      font-family: MNT;
+      padding-right: 7px;
+      font-size: 18px;
+    }
+    span {
+      font-family: QS;
+      font-size: 12px;
+      opacity: 0.7;
+      padding-right: 5px;
+    }
+  }
+  .content {
+    font-size: 15px;
+    padding: .25rem 0 .1rem 0;
+    line-height: 22px;
+    strong {
+      font-weight: bold;
+    }
+    em {
+      font-style: italic;
+    }
+    u {
+      text-decoration: underline;
+    }
+  }
+}
+
+.write-message {
+  @include display(flex);
+  @include flex-grow(0);
+  @include flex-shrink(0);
+  height: 60px;
+  padding: 1em;
+  input {
+    @include flex-grow(1);
+  }
+  button {
+    @include flex-grow(0);
+    @include flex-shrink(0);
+    width: 60px;
+  }
+}

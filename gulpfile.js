@@ -16,6 +16,7 @@ paths.app = "resources/assets/";
 paths.js = [
     paths.app + "js/stanza/stanzaio.bundle.min.js"
 ];
+paths.scss = paths.app + "scss/**/*.scss";
 
 gulp.task("scss", function() {
     return gulp.src(paths.app + "scss/main.scss")
@@ -60,6 +61,7 @@ gulp.task("serve", function(){
     var app = express(),
         resources = __dirname + "/" + paths.dist;
 
+    app.use("/sandbox", express.static(resources+"sandbox/"));
     app.use("/static", express.static(resources));
     app.all("/*", function(req, res, next){
         res.sendFile("index.html", {root: resources});
