@@ -7,23 +7,27 @@
 
 ;; Routes
 
-(defroute home "/" []
+(defroute home-route "/" []
   (swap! st/state assoc :page {:name :home}))
 
-(defroute login "/login" []
+(defroute login-route "/login" []
   (swap! st/state assoc :page {:name :login}))
 
-(defroute room "/room/:jid" [jid]
+(defroute room-route "/room/:jid" [jid]
   ; TODO: validate jid
   (swap! st/state assoc :page {:name :room
                                   :jid jid}))
 
-(defroute contact "/contact/:jid" [jid]
+(defroute contact-route "/contact/:jid" [jid]
   ; TODO: validate jid
   (swap! st/state assoc :page {:name :contact
                                   :jid jid}))
 
 ;; Start history
+
+(defn navigate
+  [route]
+  (secretary/dispatch! route))
 
 (defn start-history!
   []

@@ -22,8 +22,8 @@
 
 ;; XMPP
 
-(def xmpp-config {:jid "dialelo@niwi.be"
-                  :password "dragon"
+(def xmpp-config {:jid "kim@niwi.be"
+                  :password "korea"
                   :transports ["bosh"]
                   :boshURL "http://niwi.be:5280/http-bind"})
 (def client (xmpp/create-client xmpp-config))
@@ -37,7 +37,7 @@
   (let [mv (<! (mlet-with async/either-pipeline-monad
                 [user (xmpp/start-session client)
                  roster (xmpp/get-roster client)
-                 room (xmpp/join-room client "testroom@conference.niwi.be" "dialelo")]
+                 room (xmpp/join-room client "testroom@conference.niwi.be" "kim")]
                 (m/return {:user user, :roster roster, :room room})))]
     (when (either/right? mv)
       (xmpp/send-presence client)
