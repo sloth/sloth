@@ -1,0 +1,166 @@
+.client-sidebar-holder {
+  @include flex-grow(0);
+  @include flex-shrink(0);
+  background: $sidebar-background;
+  width: 240px;
+}
+
+.client-sidebar {
+  position: fixed;
+  height: 100%;
+  width: 240px;
+  hr {
+    border: 0;
+    padding: 0.8em 0;
+  }
+  a {
+    color: $sidebar-links;
+    font-weight: bold;
+    &:hover {
+      color: $sidebar-links-hover;
+    }
+  }
+  .logo {
+    padding: 1em 1em 3em 1em;
+  }
+  p, span, strong, em, i, li {
+    font-family: QS;
+  }
+  h3, h2, span, li {
+    color: $sidebar-text;
+    &:hover {
+      color: $sidebar-text-hover;
+    }
+  }
+  .active-user {
+    @include display(flex);
+    @include align-items(center);
+    background: rgba(0, 0, 0, 0.2);
+    border-top: lighten($sidebar-background,20%) solid 1px;
+    display: flex;
+    padding: 1em;
+    position: absolute;
+    bottom: 0;
+    img {
+      @include border-radius(8px);
+      @include flex-grow(0);
+      @include flex-shrink(0);
+      border: lighten($sidebar-background,20%) solid 1px;
+      width: 50px;
+      margin-right: 1em;
+    }
+    h2 {
+      @include flex-grow(1);
+      color: #fff;
+      font-size: 1.2;
+      overflow: hidden;
+      padding-bottom: 5px;
+      text-overflow: ellipsis;
+    }
+    .active-user-menu {
+      @include display(flex);
+      @include justify-content(center);
+      @include flex-grow(0);
+      @include flex-shrink(0);
+      padding-left: 10px;
+      width: 30px;
+    }
+    .drop-arrow {
+      background: green;
+      width: 25px;
+      height: 25px;
+    }
+    .row {
+      @include display(flex);
+    }
+  }
+  .status {
+    @include flex-grow(0);
+    @include flex-shrink(0);
+    border: solid 1px $status-border;
+    margin-right: 10px;
+    height: 10px;
+    width: 10px;
+    &.online {
+      background: $status-online;
+    }
+    &.busy {
+      background: $status-busy;
+    }
+    &.offline {
+      background: $status-offline;
+    }
+  }
+  .status-text {
+    color: #fff;
+    font-size: 12px;
+    word-break: break-all;
+  }
+}
+
+.sidebar-list {
+  h3 {
+    cursor: pointer;
+    padding: 0.5em;
+    &.nohover {
+      &:hover {
+        color: #ab9ba9;
+      }
+    }
+  }
+  li {
+    color: $sidebar-text;
+    cursor: pointer;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
+    position: relative;
+    span {
+      color: $sidebar-channel;
+      padding-right: 0.3em;
+    }
+    &:hover {
+      background: rgba(0,0,0,0.5);
+      color: $sidebar-text-hover;
+      span, p {
+        color: $sidebar-text-hover;
+      }
+    }
+  }
+  .unread {
+    color: $sidebar-text-unread-message;
+    span {
+      color: $sidebar-text-unread-message;
+    }
+    i {
+      display: inline-block;
+    }
+  }
+  .invited {
+    color: $sidebar-text-unread-message;
+    span {
+      color: $sidebar-text-unread-message;
+    }
+    i {
+      display: inline-block;
+      top: 0.8em;
+      text-align: center;
+    }
+  }
+  i {
+    @include border-radius(5px);
+    background: $sidebar-unread-messages-bg;
+    border-bottom: darken($sidebar-unread-messages-bg,40%) solid 2px;
+    color: $sidebar-unread-messages;
+    font-family: QS;
+    font-weight: bold;
+    display: none;
+    position: absolute;
+    padding: 2px 0 2px;
+    right: 1em;
+    top: 0.3em;
+    text-align: center;
+    width: 20px;
+  }
+}
