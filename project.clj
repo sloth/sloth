@@ -32,11 +32,15 @@
                  [hodgepodge "0.1.0"]
 
                  ;; Shared dependencies
-                 [cats "0.2.0"]]
+                 [cats "0.2.0"]
+
+                 ;; Utils
+                 [hiccup-bridge "1.0.1"]]
 
   :source-paths ["src/clj"]
   :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
-  :plugins [[lein-cljsbuild "1.0.3"]]
+  :plugins [[lein-cljsbuild "1.0.3"]
+            [hiccup-bridge "1.0.1"]]
   :cljsbuild {:builds
               [{:id "devel"
                 :source-paths ["src/cljs"]

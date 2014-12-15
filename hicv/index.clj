@@ -1,12 +1,60 @@
-(ns openslack.views
-  (:require [om.core :as om :include-macros true]
-            [sablono.core :as html :refer-macros [html]]
-            [openslack.views.login :refer [login]]
-            [openslack.views.sidebar :refer [sidebar]]))
-;            [openslack.views.main :refer [main]]))
-
-
-(def main [:section.client-main
+("<!doctype html>"
+ [:html
+  {:lang "en"}
+  [:head
+   [:meta {:charset "utf-8"}]
+   [:title "Open Sloth"]
+   [:meta {:content "Open Sloth", :name "description"}]
+   [:link {:href "/static/styles/main.css", :rel "stylesheet"}]]
+  [:body
+   [:section#app.client
+    [:div.client-sidebar-holder
+     [:sidebar.client-sidebar
+      [:div.logo "SlothLogo"]
+      [:div.active-user
+       [:img
+        {:height "50",
+         :width "50",
+         :alt "#user",
+         :src "/static/imgs/placerholder-avatar-1.jpg"}]
+       [:div.square
+        [:div.row [:h2 "Slothmachine"]]
+        [:div.row
+         [:div.status.online]
+         " "
+         "<!-- #ESTADOS:Online, Offline, Busy -->"
+         [:p.status-text "Tralari tralara, traliron pompan"]]]]
+      [:div.room-list.sidebar-list
+       [:h3 "Channels"]
+       [:ul
+        [:li.unread [:span "#"] "SlothMyMachine" [:i "3"]]
+        [:li.unread [:span "#"] "SlothThisShit" [:i "4"]]
+        [:li [:span "#"] "SlothThugLife\n            "]]]
+      [:hr]
+      [:div.room-list.sidebar-list
+       [:h3.nohover "Invited to this channels"]
+       [:ul
+        [:li.invited
+         [:span "#"]
+         "SlothOnElorrio"
+         [:i "!"]
+         [:p "By " [:a {:href "#"} "@dialelo"]]]
+        [:li.invited
+         [:span "#"]
+         "SlothAreBadass"
+         [:i "!"]
+         [:p "By " [:a {:href "#"} "@mgdelacroix"]]]
+        [:li.invited
+         [:span "#"]
+         "SlothNucelarSurvivor"
+         [:i "!"]
+         [:p "By " [:a {:href "#"} "@rsanchezbalo"]]]
+        [:li.invited
+         [:span "#"]
+         "SlothSlacker"
+         [:i "!"]
+         [:p "By " [:a {:href "#"} "@niwibe"]]]]]]]
+    [:section.client-main
      [:header
       [:h1 "#SlothMyMachine"]
       [:h2
@@ -197,18 +245,4 @@
           [:p.content
            "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Necessitatibus enim est sapiente ratione impedit!\n                  "]]]]
        [:div.write-message [:textarea " "] [:button "Send"]]]
-      [:div.chat-sidebar-holder [:div]]]])
-
-(defn app [state owner]
-  (reify
-    om/IDisplayName
-    (display-name [_] "Sloth")
-
-    om/IRender
-    (render [_]
-      (html (condp = (get-in state [:page :name])
-              :login (om/build login state)
-              :home [:section#app.client [:div.client-sidebar-holder (om/build sidebar state)] main]
-              :room [:section#app.client [:div.client-sidebar-holder sb] main]
-              :contact [:section#app.client [:div.client-sidebar-holder sb] main]
-              nil)))))
+      [:div.chat-sidebar-holder [:sidebar]]]]]]])

@@ -11,7 +11,6 @@
     [:title "OpenSlack"]
     (include-css "/static/styles/main.css")]
    [:body
-    [:section {:id "app"}]
     (include-js "http://fb.me/react-0.11.2.js"
                 "/static/js/vendor.js"
                 "/static/js/goog/base.js"

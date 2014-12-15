@@ -73,7 +73,7 @@
 
 (defn render-view!
   []
-  (om/root views/app st/state {:target (js/document.querySelector "#app")}))
+  (om/root views/app st/state {:target (js/document.querySelector "body")}))
 
 (defn main
   []
