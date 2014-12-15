@@ -30,19 +30,27 @@
 ;; Routes
 
 (defroute home-route "/" []
-  (swap! st/state assoc :page {:name :home}))
+  (if (:user @st/state)
+    (swap! st/state assoc :page {:name :home})
+    (navigate "/login")))
 
 (defroute login-route "/login" []
-  (swap! st/state assoc :page {:name :login}))
+  (if (:user @st/state)
+    (navigate "")
+    (swap! st/state assoc :page {:name :login})))
 
 (defroute room-route "/room/:jid" [jid]
-  ; TODO: validate jid
-  (swap! st/state assoc :page {:name :room, :jid jid}))
+  (if (:user @st/state)
+    (swap! st/state assoc :page {:name :room, :jid jid})
+    (navigate "/login")))
 
 (defroute contact-route "/contact/:jid" [jid]
-  ; TODO: validate jid
-  (swap! st/state assoc :page {:name :contact, :jid jid}))
+  (if (:user @st/state)
+    (swap! st/state assoc :page {:name :contact, :jid jid})
+    (navigate "/login")))
 
 (defroute catch-all-route "*" []
   ; FIXME: invalid route
-  (navigate ""))
+  (if (:user @st/state)
+    (navigate "")
+    (navigate "/login")))

@@ -1,11 +1,27 @@
 (ns openslack.xmpp
-  (:require [cljs.core.async :as async]
+  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require [cljs.core.async :as async :refer [<! timeout]]
+            [openslack.config :as config]
+            [cats.core :as m :include-macros true]
             [cats.monad.either :as either]))
 
 ;; Client
 
-(defn create-client [config]
-  (.createClient js/XMPP (clj->js config)))
+(defn create-client [{:keys [jid password transport url]}]
+  "Given a dictionary with XMPP credentials, return a client instance.
+
+  Examples:
+
+    ; Client with BOSH transport
+    (create-client {:jid \"dialelo@niwi.be\"
+                    :password \"dragon\"
+                    :transport :bosh
+                    :url \"http://niwi.be:5280/http-bind\"})
+  "
+  (let [config {:jid jid :password password :transports [transport]}
+        url-param (.slice (str transport "URL") 1)
+        config (assoc config url-param url)]
+    (.createClient js/XMPP (clj->js config))))
 
 (defn connect [client]
   (.connect client))
@@ -81,14 +97,38 @@
    :full (.-full rjid)})
 
 (defn start-session [client]
-  (let [c (async/chan 1)]
+  (let [c (async/chan 1)
+        cleanup (fn []
+                  (async/close! c)
+                  (.off client "sasl:*"))]
     (connect client)
-    (.once client "session:started" (fn [rjid]
-                                      (->> (if (= (.-type rjid) "error")
-                                             (either/left (keyword (.-condition (.-error rjid))))
-                                             (either/right (raw-jid->jid rjid)))
-                                           (async/put! c))))
+
+    (.on client "sasl:*" (fn [ev _]
+                              (condp = ev
+                                "sasl:success"
+                                (do
+                                  (let [rjid (.-jid (.-config client))]
+                                    (async/put! c (either/right (raw-jid->jid rjid))))
+                                  (cleanup))
+                                "sasl:failure"
+                                (do
+                                  (async/put! c (either/left))
+                                  (cleanup))
+                                nil)))
     c))
+
+(defn authenticate
+  [username password]
+  (go
+    (let [config (<! (config/get-xmpp-config))
+          client (-> config
+                     (assoc :jid username :password password)
+                     (create-client))
+          muser (<! (start-session client))]
+      (m/>>= muser
+             (fn [user]
+               (m/return {:user user
+                          :client client}))))))
 
 ;; Roster
 

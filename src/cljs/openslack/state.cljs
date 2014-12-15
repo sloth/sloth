@@ -11,6 +11,11 @@
 
 (def state (atom (make-initial-state)))
 
+(defn initialize-session
+  [{:keys [user client]}]
+  (swap! state assoc :client client)
+  (swap! state assoc :user user))
+
 (defn add-chat
   [app-state chat]
   (let [type (:type chat)
