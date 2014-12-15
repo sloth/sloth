@@ -7,6 +7,14 @@
    :features []
    :roster []
    :user nil
+   :channels [
+              {:name "sloth"
+               :unread 3}
+              {:name "general"
+               :unread 2}
+              {:name "random"
+               :unread 0}
+              ]
    :conversations {:chat {}, :groupchat {}}})
 
 (def state (atom (make-initial-state)))

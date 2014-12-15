@@ -1,7 +1,8 @@
 (ns openslack.views.sidebar
   (:require [om.core :as om :include-macros true]
             [sablono.core :as s :include-macros true]
-            [openslack.views.user :refer [user]]))
+            [openslack.views.user :refer [user]]
+            [openslack.views.channels :refer [channels]]))
 
 (defn sidebar
   [state owner]
@@ -14,12 +15,7 @@
       (s/html [:div.client-sidebar
                [:div.logo "SlothLogo"]
                (om/build user state)
-               [:div.room-list.sidebar-list
-                [:h3 "Channels"]
-                [:ul
-                 [:li.unread [:span "#"] "SlothMyMachine" [:i "3"]]
-                 [:li.unread [:span "#"] "SlothThisShit" [:i "4"]]
-                 [:li [:span "#"] "SlothThugLife\n            "]]]
+               (om/build channels state)
                [:hr]
                [:div.room-list.sidebar-list
                 [:h3.nohover "Invited to this channels"]
