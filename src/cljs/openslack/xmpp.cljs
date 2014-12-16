@@ -210,6 +210,19 @@
     (.on client "unsubscribed" (partial async/put! c))
     c))
 
+(defn raw-presence->presence
+  [rpr]
+  {:from (raw-jid->jid (.-from rpr))
+   :status (.-status rpr)
+   :type (keyword (.-type rpr))
+   :to (raw-jid->jid (.-to rpr))})
+
+(defn presences
+  [client]
+  (let [c (async/chan 10 (map raw-presence->presence))]
+    (.on client "presence" (partial async/put! c))
+    c))
+
 ;; Service discovery
 
 (defn get-features [client]
@@ -266,17 +279,4 @@
   (let [c (async/chan 10 (map (comp either/right raw-room->room)))]
     (.once client "muc:join" (partial async/put! c))
     (.joinRoom client room nick)
-    c))
-
-(defn raw-presence->presence
-  [rpr]
-  {:from (raw-jid->jid (.-from rpr))
-   :status (.-status rpr)
-   :type (keyword (.-type rpr))
-   :to (raw-jid->jid (.-to rpr))})
-
-(defn presences
-  [client]
-  (let [c (async/chan 10 (map raw-presence->presence))]
-    (.on client "presence" (partial async/put! c))
     c))
