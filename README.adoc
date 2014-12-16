@@ -111,6 +111,13 @@ nil
 cljs.user=>
 ----
 
+=== Hiccup generation from HTML template
+
+For generating the hiccup equivalent of the HTML template, run the following command:
+
+----
+$ lein hicv 2clj resources/public/sandbox/index.html
+----
 
 === Setup XMPP server (ejabberd)
 
