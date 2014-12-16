@@ -1,19 +1,25 @@
 (ns openslack.xmpp
   (:require [clojure.core.async :refer [go put! chan <! close!]]
             [clojure.set :refer [map-invert]]
-            [openslack.xmpp.types :as types])
+            [openslack.xmpp.types :as types]
+            [openslack.logging :as logging])
   (:import rocks.xmpp.core.session.TcpConnectionConfiguration
            rocks.xmpp.core.session.XmppSessionConfiguration
            rocks.xmpp.core.session.SessionStatusListener
            rocks.xmpp.core.stanza.model.client.Presence
            rocks.xmpp.core.stanza.model.client.Message
-           rocks.xmpp.extensions.ping.PingManager
            rocks.xmpp.core.Jid
+           rocks.xmpp.core.stanza.MessageEvent
+           rocks.xmpp.core.stanza.PresenceEvent
            rocks.xmpp.core.stanza.MessageListener
            rocks.xmpp.core.stanza.PresenceListener
            rocks.xmpp.core.stanza.MessageEvent
            rocks.xmpp.debug.gui.VisualDebugger
-           rocks.xmpp.core.session.XmppSession))
+           rocks.xmpp.core.session.XmppSession
+           rocks.xmpp.extensions.muc.MultiUserChatManager
+           rocks.xmpp.extensions.ping.PingManager
+           rocks.xmpp.extensions.muc.InvitationListener
+           org.apache.commons.lang3.StringUtils))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Constants
@@ -58,48 +64,50 @@
    :dnd rocks.xmpp.core.stanza.model.AbstractPresence$Show/DND
    :xa rocks.xmpp.core.stanza.model.AbstractPresence$Show/XA})
 
+
+(defn translate-session-status
+  [status]
+  (get (map-invert *session-statuses*) status :unknown))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Stanza transformation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmulti extern->clj class)
+(defprotocol IStanza
+  (get-from [_])
+  (get-to [_]))
 
-(defmethod extern->clj Message
-  [message]
-  (types/map->Message
-   {:type (get (map-invert *message-types*) (.getType message))
-    :body (.getBody message)
-    :subject (.getSubject message)
-    :from (extern->clj (.getFrom message))
-    :to   (extern->clj (.getTo message))
-    :stanza message}))
+(defprotocol IStanzaType
+  (get-type [_]))
 
-(defmethod extern->clj Jid
-  [jid]
-  (types/map->Jid {:local (.getLocal jid)
-                   :domain (.getDomain jid)
-                   :resource (.getDomain jid)}))
+(defprotocol IStanzaBody
+  (get-body [_]))
 
-(defmethod extern->clj Presence
-  [presence]
-  (types/map->Presence
-   {:type (get (map-invert *presence-types*) (.getType presence))
-    :show (extern->clj (.getShow presence))
-    :from (extern->clj (.getFrom presence))
-    :to   (extern->clj (.getTo presence))
-    :stanza presence}))
 
-(defmethod extern->clj rocks.xmpp.core.session.XmppSession$Status
-  [status]
-  (get (map-invert *session-statuses*) status :unknown))
+(extend-type Message
+  IStanza
+  (get-to [this] (.getTo this))
+  (get-from [this] (.getFrom this))
 
-(defmethod extern->clj rocks.xmpp.core.stanza.model.AbstractPresence$Show
-  [status]
-  (get (map-invert *presence-show-types*) status :unknown))
+  IStanzaType
+  (get-type [this]
+    (get (map-invert *message-types*) (.getType this)))
 
-(defmethod extern->clj :default
-  [obj]
-  (types/map->Unknown {:data obj}))
+  IStanzaBody
+  (get-body [this] (.getBody this)))
+
+
+(extend-type Presence
+  IStanza
+  (get-to [this] (.getTo this))
+  (get-from [this] (.getFrom this))
+
+  IStanzaType
+  (get-type [this]
+    (get (map-invert *presence-types*) (.getType this)))
+
+  IStanzaBody
+  (get-body [this] (.getBody this)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Session management
@@ -117,6 +125,7 @@
 (defn- make-session-config
   [_]
   (let [builder (XmppSessionConfiguration/builder)]
+    ;; (.defaultResponseTimeout builder 50000)
     (.build builder)))
 
 (defn make-session
@@ -153,7 +162,7 @@
   (let [channel (chan 1)
         listener (reify SessionStatusListener
                     (sessionStatusChanged [this event]
-                      (let [status (extern->clj (.getStatus event))]
+                      (let [status (translate-session-status (.getStatus event))]
                         (when (or (= status :closing)
                                   (= status :closed))
                           (close! channel)
@@ -162,7 +171,7 @@
      channel))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Listeners
+;; Session listeners
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn listen-session-status
@@ -171,8 +180,7 @@
   ([session channel]
    (let [listener (reify SessionStatusListener
                     (sessionStatusChanged [this event]
-                      (let [status (.getStatus event)
-                            status (extern->clj status)
+                      (let [status (translate-session-status (.getStatus event))
                             rsp (put! channel status)]
                         (when-not (true? rsp)
                           (.removeSessionStatusListener session this)))))]
@@ -193,10 +201,10 @@
    (let [listener (reify MessageListener
                     (handle [this event]
                       (let [message (.getMessage event)
-                            message (extern->clj message)
                             rsp (put! channel message)]
                         (when-not (true? rsp)
                           (.removeMessageListener session this)))))]
+
      (.addMessageListener session listener)
 
      ;; Wait session close events and
@@ -209,15 +217,15 @@
 
 (defn listen-presence
   "Listen presence from the session."
-  ([session] (listen-messages session (chan)))
+  ([session] (listen-presence session (chan)))
   ([session channel]
    (let [listener (reify PresenceListener
                     (handle [this event]
-                      (let [presence (extern->clj (.getPresence event))
+                      (let [presence (.getPresence event)
                             rsp (put! channel presence)]
                         (when-not (true? rsp)
-                          (.removeMessageListener session this)))))]
-     (.addMessageListener session listener)
+                          (.removePresenceListener session this)))))]
+     (.addPresenceListener session listener)
 
      ;; Wait session close events and
      ;; close resources when connection is closed.
@@ -228,123 +236,55 @@
      channel)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Subscriptions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn approve-contact-subscription
+  [session from]
+  (let [manager (.getPresenceManager session)]
+    (.approveSubscription manager from)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; MUC
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (def ^{:doc "Presence type translation map."
-;;        :dynamic true}
-;;   *presence-types*
-;;   {:available org.jivesoftware.smack.packet.Presence$Type/available
-;;    :unavailable org.jivesoftware.smack.packet.Presence$Type/unavailable
-;;    :error org.jivesoftware.smack.packet.Presence$Type/error})
+(defn make-jid
+  ([domain] (Jid. domain))
+  ([local domain] (Jid. local domain))
+  ([local domain resource] (Jid. local domain resource)))
 
-;; (defn make-presence
-;;   [{:keys [to type]}]
-;;   (let [presence (Presence. (get *presence-types* type))]
-;;     (when to
-;;       (.setTo presence to))
-;;     presence))
+(defn get-muc-manager
+  [session]
+  (.getExtensionManager session MultiUserChatManager))
 
-;; (defn make-message
-;;   [{:keys [to type]}]
-;;   (let [msg (Message. to (get *message-types* type))]
-;;     msg))
+(defn get-chat-service
+  [session roomdomain]
+  (let [manager (get-muc-manager session)]
+    (.createChatService manager (Jid. roomdomain))))
 
-;; (defn- make-joinroom-packet
-;;   [{:keys [room nickname password]}]
-;;   (let [room (.toLowerCase room)
-;;         to   (str room "@conference.niwi.be" "/" nickname)
-;;         presence (make-presence {:type :available
-;;                                  :to to})
-;;         extension (MUCInitialPresence.)]
-;;     (when password
-;;       (.setPassword extension password))
-;;     (.addExtension presence extension)
-;;     presence))
+(defn get-room
+  [chatservice roomname]
+  (.createRoom chatservice roomname))
 
-;; (defn multi-user-chat
-;;   [conn room]
-;;   (let [mucmanager (MultiUserChatManager/getInstanceFor conn)
-;;         muc (.getMultiUserChat mucmanager room)]
-;;     muc))
+(defn listen-muc-invitations
+  "Listen presence from the session."
+  ([session mucmanager] (listen-muc-invitations session mucmanager (chan)))
+  ([session mucmanager channel]
+   (let [listener (reify InvitationListener
+                    (invitationReceived [this invitation]
+                      (let [inviter (.getInviter invitation)
+                            room    (.getRoomAddress invitation)
+                            rsp (put! channel invitation)]
+                        (when-not (true? rsp)
+                          (.removeInvitationListener mucmanager this)))))]
 
-;; (defn join-room
-;;   [^MultiUserChat muc {:keys [nickname password] :as opts}]
-;;   (if (nil? password)
-;;     (.join muc nickname)
-;;     (.join muc nickname password))))
+     (.addInvitationListener mucmanager listener)
 
-;; (defn invite-to-room
-;;   ([^MultiUserChat muc nickname reason]
-;;    (.invite muc nickname reason))
-;;   ([^MultiUserChat muc nickname reason password]
-;;    (.invite muc nickname reason password)))
+     ;; Wait session close events and
+     ;; close resources when connection is closed.
+     (go
+       (<! (wait-close session))
+       (close! channel))
 
-;; (defn listen-muc-invitations
-;;   ([conn] (listen-muc-invitations conn (chan)))
-;;   ([conn channel]
-;;    (let [listener (reify InvitationListener
-;;                     (invitationReceived [_ conn room inviter reason password message]
-;;                       (let [muc (multi-user-chat conn room)]
-;;                         (put! channel {:muc muc :password password}))))]
-;;      (MultiUserChat/addInvitationListener conn listener)
-;;      channel)))
+     channel)))
 
-;; (defmethod listen-messages MultiUserChat
-;;   ([muc] (listen-messages muc (chan)))
-;;   ([muc channel]
-;;    (let [listener (reify PacketListener
-;;                     (processPacket [this message]
-;;                       (let [r (put! channel [muc message])]
-;;                         (when-not (true? r)
-;;                           (.removeMessageListener muc this)))))]
-;;      (.addMessageListener muc listener)
-;;      channel)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Packet listening
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; (def ^{:doc "Packet Filter that accepts all packets."}
-;;   packet-filter-all
-;;   (reify PacketFilter
-;;     (accept [_ packet] true)))
-
-;; Filters for groupchat rooms.
-;; fromRoomFilter = FromMatchesFilter.create(room);
-;; fromRoomGroupchatFilter = new AndFilter(fromRoomFilter, MessageTypeFilter.GROUPCHAT);
-
-;; Invitation filter
-;; new AndFilter(PacketTypeFilter.MESSAGE, new PacketExtensionFilter(new MUCUser()),
-;;               new NotFilter(MessageTypeFilter.ERROR));
-
-
-
-
-;; (defn listen-received-packets
-;;   "Add packet listener to the connection and
-;;   return a channel."
-;;   ([conn] (listen-received-packets conn packet-filter-all (chan)))
-;;   ([conn filter] (listen-received-packets conn filter (chan)))
-;;   ([conn filter channel]
-;;    (let [listener (reify PacketListener
-;;                     (processPacket [this packet]
-;;                       (let [r (put! channel packet)]
-;;                         (when-not (true? r)
-;;                           (.removePacketListener conn this)))))]
-;;      (.addPacketListener conn listener filter)
-;;      channel)))
-
-;; (defn listen-sending-packets
-;;   "Add packet listener to the connection and
-;;   return a channel."
-;;   ([conn] (listen-sending-packets conn packet-filter-all (chan)))
-;;   ([conn filter] (listen-sending-packets conn filter (chan)))
-;;   ([conn filter channel]
-;;    (let [listener (reify PacketListener
-;;                     (processPacket [this packet]
-;;                       (let [r (put! channel packet)]
-;;                         (when-not (true? r)
-;;                           (.removePacketListener conn this)))))]
-;;      (.addPacketSendingListener conn listener filter)
-;;      channel)))

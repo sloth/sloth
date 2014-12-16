@@ -1,10 +1,11 @@
 (ns openslack.bots.sloth
   (:require [com.stuartsierra.component :as component]
-            [clojure.core.async :refer [go <! >! go-loop alts! pub sub unsub close! chan put!]]
+            [clojure.core.async :refer [go <! >! go-loop alts! pub sub
+                                        unsub close! chan put! thread]]
             [clojure.string :as str]
             [clojure.set :refer [map-invert]]
             [openslack.xmpp :as xmpp]
-            [buddy.sign.generic :as sign])
+            [openslack.logging :as logging])
   (:import rocks.xmpp.core.session.SessionStatusListener))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -16,7 +17,7 @@
   (let [statuses (xmpp/listen-session-status session)]
     (go-loop []
       (when-let [status (<! statuses)]
-        (println "STATUS: " status)
+        (logging/info "Session status: " status)
         (recur)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -103,18 +104,59 @@
   (let [messages (xmpp/listen-messages session)]
     (go-loop []
       (when-let [message (<! messages)]
-        (println "*start******************************")
-        (println "received message:" message)
-        (println "*end******************************")
+        (logging/info "Received message: " message)
         (recur)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Presence
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- process-subscription
+  [session presence]
+  (let [from (xmpp/get-from presence)]
+    (xmpp/approve-contact-subscription session from)))
+
+(defn- process-presence-packet
+  [session presence]
+  (condp = (xmpp/get-type presence)
+    :subscribe (process-subscription session presence)
+    nil))
 
 (defn start-presence-watcher
   [session]
   (let [presences (xmpp/listen-presence session)]
     (go-loop []
       (when-let [presence (<! presences)]
-        (println "received presence:" presence)
+        (logging/info "Received presence: " presence)
+        (process-presence-packet session presence)
         (recur)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Multi User Chat
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn start-muc-invitations-watcher
+  [session]
+  (let [manager (xmpp/get-muc-manager session)
+        invitations (xmpp/listen-muc-invitations session manager)]
+    (go-loop []
+      (when-let [invitation (<! invitations)]
+        (logging/info "Invitation received:" invitation)
+        (let [roomaddress (.getRoomAddress invitation)
+              roomdomain (.getDomain roomaddress)
+              roomlocal (.getLocal roomaddress)
+              service (xmpp/get-chat-service session roomdomain)
+              room    (xmpp/get-room service roomlocal)]
+          ;; (let [info (.getRoomInfo room)
+          ;;       features (.getFeatures info)]
+          ;;   (logging/info "FEATURES:" features))
+          (try
+            (.enter room "Sloth")
+            (catch Exception e
+              nil))
+          (.sendMessage room "Hello sloths!")
+          (recur))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Component definition
@@ -123,28 +165,29 @@
 (defrecord Sloth [config]
   component/Lifecycle
   (start [component]
-    (println "Start sloth.")
+    (logging/info "Start sloth bot.")
     (let [config (get-in config [:bots :sloth])
           session (xmpp/make-session config)]
 
-      (start-session-status-watcher session)
-      (xmpp/authenticate session config)
-      (xmpp/send-initial-presence session)
+      (go
+        (start-session-status-watcher session)
+        (xmpp/authenticate session config)
+        (xmpp/send-initial-presence session)
 
-      ;; Sniffers
-      (start-messages-watcher session)
-      (start-presence-watcher session)
+        ;; Sniffers
+        (start-messages-watcher session)
+        (start-presence-watcher session)
 
-      ;; Internal services routines
-      ;; (initialize-messages-watcher publication)
+        (start-muc-invitations-watcher session))
 
       (assoc component
         :session session)))
 
   (stop [component]
-    (println "Stop sloth")
+    (logging/info "Stop sloth bot.")
     (let [{:keys [session]} component]
       (.close session)
+      (logging/info "Closing session" session (.name (.getStatus session)))
       (assoc component
         :session nil))))
 

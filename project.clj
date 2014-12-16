@@ -28,6 +28,10 @@
                  [rocks.xmpp/xmpp-extensions-client "0.4.0"]
                  [rocks.xmpp/xmpp-debug "0.4.0"]
 
+                 [org.apache.commons/commons-lang3 "3.3.2"]
+
+                 [clj-time "0.8.0"]
+
                  ;; Frontend dependencies
                  [org.clojure/clojurescript "0.0-2411"]
                  [secretary "1.2.1"]

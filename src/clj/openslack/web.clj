@@ -4,20 +4,22 @@
             [compojure.core :refer :all]
             [compojure.route :as route]
             [compojure.response :refer [render]]
-            [openslack.web.home :as home]))
+            [openslack.web.home :as home]
+            [openslack.logging :as logging]))
 
 (defn- make-routes-handler
   [config]
   (routes
    (GET "/" [] home/home-ctrl)
-   ;; (POST "/api/v1/rooms" [] api/rooms-ctrl)
    (route/resources "/static")
    (route/not-found "<h1>Page not found</h1>")))
 
 (defrecord Web [config]
   component/Lifecycle
   (start [component]
+    (logging/info "Start web component." config)
     (println "Start Web component." config)
+
     (let [handler (make-routes-handler {})
           server  (run-jetty {:ring-handler handler
                               :port (get-in config [:web :port] 5050)
@@ -26,7 +28,7 @@
       (assoc component :server server)))
 
   (stop [component]
-    (println "Stop Web component.")
+    (logging/info "Stop web component.")
     (let [server (:server component)]
       (.stop server)
       (assoc component :server nil))))
