@@ -2,7 +2,17 @@
   (:require [om.core :as om :include-macros true]
             [sablono.core :as s :include-macros true]
             [openslack.state :as st]
-            [openslack.views.message :refer [message]]))
+            [openslack.views.message :as msg]
+            [openslack.xmpp :as xmpp]))
+
+(defn send-content-message
+  [room message]
+  (let [bare-room (get-in room [:jid :bare])
+        client (:client @st/state)
+        msg {:to bare-room
+             :type :groupchat
+             :body message}]
+    (xmpp/send-message client msg)))
 
 (defn room
   [state owner]
@@ -10,8 +20,11 @@
     om/IDisplayName
     (display-name [_] "Room")
 
-    om/IRender
-    (render [_]
+    om/IInitState
+    (init-state [_] {:message ""})
+
+    om/IRenderState
+    (render-state [_ {:keys [message]}]
       (when-let [room-name (get-in state [:page :room])]
         (let [r (st/room room-name)]
           (.log js/console "RRRR " (pr-str room-name) (pr-str r))
@@ -27,6 +40,17 @@
             [:div.chat-zone
              [:div.chat-container
               [:div.messages-container
-               (om/build-all message (st/room-messages r))]
-              [:div.write-message [:textarea " "] [:button "Send"]]]
+               (om/build-all msg/message (st/room-messages r))]
+              [:div.write-message
+               [:textarea {:on-key-up (fn [e]
+                                        (let [value (-> e
+                                                        (.-target)
+                                                        (.-value))]
+                                          (om/set-state! owner :message value)))}]
+               [:button {:on-click (fn [e]
+                                     (.preventDefault e)
+                                     (send-content-message r message)
+                                     (om/set-state! owner :message "")
+                                     ; clean textarea ()
+                                     )} "Send"]]]
              [:div.chat-sidebar-holder [:div]]]]))))))

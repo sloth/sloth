@@ -273,7 +273,7 @@
 (defn raw-room->room
   [rroom]
   {:jid (raw-jid->jid (.-from rroom))
-   :muc (js->clj (.-muc rrom) {:keywordize-keys true})
+   :muc (js->clj (.-muc rroom) {:keywordize-keys true})
    :type (keyword (.-type rroom))})
 
 (defn join-room [client room nick]
