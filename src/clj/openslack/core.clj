@@ -3,7 +3,7 @@
             [clojure.core.async :refer [chan <!!]]
             [openslack.config :refer [configuration]]
             [openslack.web :refer [web]]
-            [openslack.bots.experiment :refer [toy-xmpp-bot]])
+            [openslack.bots :as bots])
   (:gen-class))
 
 
@@ -13,10 +13,10 @@
   (-> (component/system-map
        :config (configuration)
        :web (web)
-       :toybot (toy-xmpp-bot))
+       :slothbot (bots/sloth))
       (component/system-using
        {:web [:config]
-        :toybot [:config]})))
+        :slothbot [:config]})))
 
 (defn initialize
   []
@@ -24,6 +24,7 @@
 
 (defn -main
   [& args]
-  (let [lock (chan 1)]
-    (initialize)
-    (<!! lock)))
+  (let [lock (chan 1)
+        sys (initialize)]
+    (<!! lock)
+    (component/stop sys)))

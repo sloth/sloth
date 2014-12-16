@@ -10,6 +10,7 @@
   [config]
   (routes
    (GET "/" [] home/home-ctrl)
+   ;; (POST "/api/v1/rooms" [] api/rooms-ctrl)
    (route/resources "/static")
    (route/not-found "<h1>Page not found</h1>")))
 
@@ -27,7 +28,6 @@
   (stop [component]
     (println "Stop Web component.")
     (let [server (:server component)]
-      (println 2222 server)
       (.stop server)
       (assoc component :server nil))))
 

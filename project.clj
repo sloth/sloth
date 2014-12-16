@@ -14,6 +14,8 @@
                  [com.stuartsierra/component "0.2.2"]
                  [ring/ring-core "1.3.2" :exclusions [javax.servlet/servlet-api
                                                       org.clojure/tools.reader]]
+                 [buddy "0.2.3"]
+                 [potemkin "0.3.11"]
                  [cc.qbits/jet "0.5.1"]
                  [com.cemerick/piggieback "0.1.3"]
                  [weasel "0.4.2"]
@@ -32,10 +34,8 @@
                  [hodgepodge "0.1.0"]
 
                  ;; Shared dependencies
-                 [cats "0.2.0"]
-
-                 ;; Utils
-                 [hiccup-bridge "1.0.1"]]
+                 [hiccup-bridge "1.0.1"]
+                 [cats "0.2.0" :exclusions [org.clojure/clojure]]]
 
   :source-paths ["src/clj"]
   :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
