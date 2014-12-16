@@ -22,8 +22,8 @@
      :room {:name "anime"}}
    ]
    :channels [
-      {:name "sloth"
-       :jid "sloth@conference.niwi.be"
+      {:jid {:local "sloth"
+             :bare "sloth@conference.niwi.be"}
        :unread 0}
    ]
    :conversations {:chat {}, :groupchat {}}})
@@ -65,24 +65,12 @@
                     (conj oldroster (select-keys presence [:from :status :type])))]
     (assoc app-state :roster newroster)))
 
+(defn room
+  [name]
+  (first (filter #(= name (get-in % [:jid :local]))
+                 (:channels @state))))
+
 (defn room-messages
   [room]
-  [
-   {:from {:local "dialelo"}
-    :to "sloth@niwi.be"
-    :body "Eso es como Javascript: un accidente histórico"
-    :avatar "/static/imgs/placerholder-avatar-1.jpg"}
-   {:from {:local "ramiro"}
-    :to "sloth@niwi.be"
-    :body "No soy grumpy, hago ruiditos."
-    :avatar "/static/imgs/placerholder-avatar-2.jpg"}
-   {:from {:local "niwibe"}
-    :to "sloth@niwi.be"
-    :body "¿Puedo hacerle una crítica constructiva a la puta mierda que has hecho?"
-    :avatar "/static/imgs/placerholder-avatar-3.jpg"}
-   {:from {:local "miguel"}
-    :to "sloth@niwi.be"
-    :body "Al final nos vamos a comer la mierda de nuestro propio perro"
-    :avatar "/static/imgs/placerholder-avatar-4.jpg"}
-   ])
+  (get-in @state [:conversations :groupchat (get-in room [:jid :local])]))
 ; TODO: functions for updating state

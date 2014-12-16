@@ -20,7 +20,7 @@
                :alt "#user",
                :src (:avatar state)}]]
             [:div.message-content
-             [:div.message-title [:strong (-> state :from :local)] [:span "10:11 pm"]]
+             [:div.message-title [:strong (-> state :from :resource)] [:span "10:11 pm"]]
              [:p.content (-> state :body)]]]))))
 
 (defn room
@@ -31,19 +31,21 @@
 
     om/IRender
     (render [_]
-      (when-let [room (-> state :page :room)]
-        (s/html
-         [:section.client-main
-          [:header
-           [:h1 (str "#" room)]
-           [:h2
-            "Le topic del dia: Los "
-            [:strong "Sloth"]
-            " dominaran el mundo\n        "]]
-          [:hr]
-          [:div.chat-zone
-           [:div.chat-container
-            [:div.messages-container
-             (om/build-all message (st/room-messages room))]
-            [:div.write-message [:textarea " "] [:button "Send"]]]
-           [:div.chat-sidebar-holder [:div]]]])))))
+      (when-let [room-name (get-in state [:page :room])]
+        (let [r (st/room room-name)]
+          (.log js/console "RRRR " (pr-str room-name) (pr-str r))
+          (s/html
+           [:section.client-main
+            [:header
+             [:h1 (str "#" (get-in r [:jid :local]))]
+             [:h2
+              "Le topic del dia: Los "
+              [:strong "Sloth"]
+              " dominaran el mundo\n        "]]
+            [:hr]
+            [:div.chat-zone
+             [:div.chat-container
+              [:div.messages-container
+               (om/build-all message (st/room-messages r))]
+              [:div.write-message [:textarea " "] [:button "Send"]]]
+             [:div.chat-sidebar-holder [:div]]]]))))))

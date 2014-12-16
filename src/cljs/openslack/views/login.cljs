@@ -33,8 +33,8 @@
 
     om/IInitState
     (init-state [_]
-      {:username ""
-       :password ""
+      {:username "kim@niwi.be"
+       :password "korea"
        :error ""})
 
     om/IRenderState

@@ -272,11 +272,12 @@
 
 (defn raw-room->room
   [rroom]
-  {:from (raw-jid->jid (.-from rroom))
+  {:jid (raw-jid->jid (.-from rroom))
+   :muc (js->clj (.-muc rrom) {:keywordize-keys true})
    :type (keyword (.-type rroom))})
 
 (defn join-room [client room nick]
-  (let [c (async/chan 10 (map (comp either/right raw-room->room)))]
+  (let [c (async/chan 10 (map raw-room->room))]
     (.once client "muc:join" (partial async/put! c))
     (.joinRoom client room nick)
     c))

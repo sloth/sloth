@@ -1,6 +1,7 @@
 (ns openslack.views
   (:require [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
+            [openslack.state :as st]
             [openslack.views.login :refer [login]]
             [openslack.views.sidebar :refer [sidebar]]
             [openslack.views.room :refer [room]]))
@@ -20,9 +21,11 @@
               :home [:section#app.client
                      [:div.client-sidebar-holder (om/build sidebar state)]
                      home]
-              :room [:section#app.client
-                     [:div.client-sidebar-holder (om/build sidebar state)]
-                     (om/build room state)]
+              :room (let [room-name (get-in state [:page :room])
+                          r (st/room room-name)]
+                      [:section#app.client
+                       [:div.client-sidebar-holder (om/build sidebar state)]
+                       (om/build room state)])
               :contact [:section#app.client
                         [:div.client-sidebar-holder (om/build sidebar state)]
                         contact]

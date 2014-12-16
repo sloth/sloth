@@ -19,20 +19,6 @@
 ;; Start XMPP session
 
 ;(go
-;  (let [mv (<! (with-monad async/either-pipeline-monad
-;                 (mlet [user (xmpp/start-session client)
-;                        roster (xmpp/get-roster client)
-;                        room (xmpp/join-room client "testroom@conference.niwi.be" "kim")]
-;                   (m/return {:user user, :roster roster, :room room}))))]
-;    (when (either/right? mv)
-;      (xmpp/send-presence client)
-;      (xmpp/update-capabilities client)
-;      (let [{:keys [user roster room]} (either/from-either mv)]
-;        (swap! st/state assoc :user user)
-;        (swap! st/state assoc :roster roster)
-;        (swap! st/state assoc :features (xmpp/get-features client))
-;        (swap! st/state st/join-room room)))))
-
 ; TODO: roster-updating process
 ;(def roster-updates-chan (xmpp/roster-updates client))
 ;(go (loop []
@@ -64,8 +50,9 @@
 ;(def subscriptions-chan (xmpp/subscriptions client))
 ;(def unsubscriptions-chan (xmpp/unsubscriptions client))
 ;
-;;; Enable browser enabled repl.
-;; (ws-repl/connect "ws://localhost:9001")
+
+;; Enable browser enabled repl.
+(ws-repl/connect "ws://localhost:9001")
 
 (defn start-processes!
   []
@@ -84,10 +71,8 @@
     ; Contact presences
     (let [presence-chan (xmpp/presences client)]
       (go-loop [presence (<! presence-chan)]
-        (.log js/console ":OLLLL" (pr-str presence))
         (swap! st/state st/update-presence presence)
         (recur (<! presence-chan))))
-
 
     ; Roster
     (go-loop [mroster (<! (xmpp/get-roster client))]
@@ -99,6 +84,24 @@
 ;    (let [subs (xmpp/subscriptions client)]
 ;      (go-loop [s (<! subs)]
 ;        (recur (<! subs))))
+
+    ; Rooms
+    (go
+      (let [room (<! (xmpp/join-room client "sloth@conference.niwi.be" (:local (:user @st/state))))]
+
+        ))
+
+    ; Chat updating process
+    (let [chats (xmpp/chats client)]
+      (go-loop [chat (<! chats)]
+        (.log js/console "chat! " (pr-str chat))
+        (swap! st/state st/add-chat chat)
+        (recur (<! chats))))
+    ;(def chats-chan (xmpp/chats client))
+    ;(go-loop [chat (<! chats-chan)]
+    ; (swap! st/state st/add-chat chat)
+    ; (recur (<! chats-chan)))
+
 ))
 
 (defn render-view!

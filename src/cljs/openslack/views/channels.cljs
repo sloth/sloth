@@ -17,7 +17,8 @@
                  [:h3 "Channels"]
                  [:ul
                   (for [chan (:channels state)
-                        :let [name (:name chan)
+                        :let [jid (:jid chan)
+                              name (:local jid)
                               unread (:unread chan 0)
                               attrs {:on-click #(navigate (room-route {:name name}))}]]
                     (if (> unread 0)
