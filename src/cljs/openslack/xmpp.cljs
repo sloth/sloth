@@ -277,8 +277,9 @@
 
 (defn raw-room->room
   [rroom]
+  ; TODO: more complete info: topic & co
   {:jid (raw-jid->jid (.-from rroom))
-   :muc (js->clj (.-muc rroom) {:keywordize-keys true})
+   :muc (js->clj (.-muc rroom) {:keywordize-keys true}) ; FIXME
    :type (keyword (.-type rroom))})
 
 (defn join-room [client room nick]

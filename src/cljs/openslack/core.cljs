@@ -51,7 +51,7 @@
     ; Rooms
     (go
       (let [room (<! (xmpp/join-room client "sloth@conference.niwi.be" (:local (:user @st/state))))]
-
+        ; TODO: join my room
         ))
 
     ; Chat updating process
