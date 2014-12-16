@@ -3,7 +3,7 @@
             [sablono.core :as s :include-macros true]
             [openslack.state :as st]
             [openslack.views.messages :as msg]
-            [openslack.communicator :as comm]))
+            [openslack.chat :as chat]))
 
 (defn contact
   [state owner]
@@ -40,7 +40,7 @@
                [:button {:on-click (fn [e]
                                      (.preventDefault e)
                                      (when message
-                                       (comm/send-personal-message (get-in user [:jid :bare]) message)
+                                       (chat/send-personal-message (get-in user [:jid :bare]) message)
                                        (om/set-state! owner :message ""))
                                      )} "Send"]]]
              [:div.chat-sidebar-holder [:div]]]]))))))

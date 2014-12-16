@@ -249,7 +249,6 @@
 
 (defn raw-chat->chat
   [rchat]
-  (js* "debugger;")
   {:body (.-body rchat)
    :type (keyword (.-type rchat))
    :from (raw-jid->jid (.-from rchat))

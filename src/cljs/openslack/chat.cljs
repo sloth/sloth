@@ -1,7 +1,6 @@
-(ns openslack.communicator
+(ns openslack.chat
   (:require [openslack.xmpp :as xmpp]
-            [openslack.state :as st]
-            [om.core :as om]))
+            [openslack.state :as st]))
 
 (defn send-group-message
   [recipient body]
