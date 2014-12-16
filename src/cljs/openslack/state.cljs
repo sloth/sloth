@@ -53,6 +53,18 @@
         from (-> room :from :bare)]
     (update-in app-state [:conversations type from] (fnil empty []))))
 
+(defn update-presence
+  [app-state presence]
+  (let [roster (:roster app-state)
+        from (:from presence)
+        oldroster (into [] (filter #(not= (:bare from) (-> % :jid :bare))) roster)
+        user (first (filter #(= (:bare from) (-> % :jid :bare)) roster))
+        newroster (if user
+                    (conj oldroster (assoc user :status (:status presence)
+                                           :type (:type presence)))
+                    (conj oldroster (select-keys presence [:from :status :type])))]
+    (assoc app-state :roster newroster)))
+
 (defn room-messages
   [room]
   [

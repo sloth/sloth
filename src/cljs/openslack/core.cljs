@@ -74,8 +74,32 @@
 (defn start-xmpp-session!
   []
   (let [client (:client @st/state)]
-    (xmpp/send-presence client {:show :chat})
-    (xmpp/get-roster client)))
+    ; Raw events (debug)
+    (.on client "raw:*" (fn [ev payload]
+                          (.log js/console ev payload)))
+
+    ; Presence
+    (xmpp/send-presence client)
+
+    ; Contact presences
+    (let [presence-chan (xmpp/presences client)]
+      (go-loop [presence (<! presence-chan)]
+        (.log js/console ":OLLLL" (pr-str presence))
+        (swap! st/state st/update-presence presence)
+        (recur (<! presence-chan))))
+
+
+    ; Roster
+    (go-loop [mroster (<! (xmpp/get-roster client))]
+      (if-let [roster (either/from-either mroster)]
+        (swap! st/state assoc :roster roster)
+        (recur (<! (xmpp/get-roster client)))))
+
+    ; Subscriptions
+;    (let [subs (xmpp/subscriptions client)]
+;      (go-loop [s (<! subs)]
+;        (recur (<! subs))))
+))
 
 (defn render-view!
   []
@@ -86,9 +110,7 @@
   (add-watch st/state :log-in (fn [_ _ oldval newval]
                                 (when (and (not (st/logged-in? oldval))
                                            (st/logged-in? newval))
-                                  (do
-                                    (.log js/console "Sending presence" (:client @st/state))
-                                    (start-xmpp-session!))))))
+                                    (start-xmpp-session!)))))
 
 (defn main
   []
