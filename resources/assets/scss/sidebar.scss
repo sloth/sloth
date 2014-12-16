@@ -7,6 +7,8 @@
 
 .client-sidebar {
   position: fixed;
+  @include display(flex);
+  @include flex-direction(column);
   height: 100%;
   width: 240px;
   hr {
@@ -20,27 +22,17 @@
       color: $sidebar-links-hover;
     }
   }
-  .logo {
-    padding: 1em 1em 3em 1em;
-  }
-  p, span, strong, em, i, li {
-    font-family: QS;
-  }
-  h3, h2, span, li {
-    color: $sidebar-text;
-    &:hover {
-      color: $sidebar-text-hover;
-    }
-  }
+
   .active-user {
+    @include flex-grow(0);
+    @include flex-shrink(0);
     @include display(flex);
     @include align-items(center);
     background: rgba(0, 0, 0, 0.2);
     border-top: lighten($sidebar-background,20%) solid 1px;
     display: flex;
+    height: 53px;
     padding: 1em;
-    position: absolute;
-    bottom: 0;
     img {
       @include border-radius(8px);
       @include flex-grow(0);
@@ -75,6 +67,22 @@
     }
   }
 
+  .client-lists {
+    @include flex-grow(1);
+    overflow: auto;
+  }
+  .logo {
+    padding: 1em 1em 3em 1em;
+  }
+  p, span, strong, em, i, li {
+    font-family: QS;
+  }
+  h3, h2, span, li {
+    color: $sidebar-text;
+    &:hover {
+      color: $sidebar-text-hover;
+    }
+  }
   .status-text {
     color: #fff;
     font-size: 12px;
