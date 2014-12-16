@@ -68,17 +68,17 @@
     ; Presence
     (xmpp/send-presence client)
 
-    ; Contact presences
-    (let [presence-chan (xmpp/presences client)]
-      (go-loop [presence (<! presence-chan)]
-        (swap! st/state st/update-presence presence)
-        (recur (<! presence-chan))))
-
     ; Roster
     (go-loop [mroster (<! (xmpp/get-roster client))]
       (if-let [roster (either/from-either mroster)]
         (swap! st/state assoc :roster roster)
         (recur (<! (xmpp/get-roster client)))))
+
+    ; Contact presences
+    (let [presence-chan (xmpp/presences client)]
+      (go-loop [presence (<! presence-chan)]
+        (swap! st/state st/update-presence presence)
+        (recur (<! presence-chan))))
 
     ; Subscriptions
 ;    (let [subs (xmpp/subscriptions client)]
@@ -94,14 +94,8 @@
     ; Chat updating process
     (let [chats (xmpp/chats client)]
       (go-loop [chat (<! chats)]
-        (.log js/console "chat! " (pr-str chat))
         (swap! st/state st/add-chat chat)
         (recur (<! chats))))
-    ;(def chats-chan (xmpp/chats client))
-    ;(go-loop [chat (<! chats-chan)]
-    ; (swap! st/state st/add-chat chat)
-    ; (recur (<! chats-chan)))
-
 ))
 
 (defn render-view!

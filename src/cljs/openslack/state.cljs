@@ -6,6 +6,7 @@
    :client nil
    :features []
    :roster []
+   :presence {}
    :user nil
    :subscriptions [
     {:type :room
@@ -55,15 +56,12 @@
 
 (defn update-presence
   [app-state presence]
-  (let [roster (:roster app-state)
-        from (:from presence)
-        oldroster (into [] (filter #(not= (:bare from) (-> % :jid :bare))) roster)
-        user (first (filter #(= (:bare from) (-> % :jid :bare)) roster))
-        newroster (if user
-                    (conj oldroster (assoc user :status (:status presence)
-                                           :type (:type presence)))
-                    (conj oldroster (select-keys presence [:from :status :type])))]
-    (assoc app-state :roster newroster)))
+  (assoc-in app-state [:presence (get-in presence [:from :bare])] {:availability (:type presence)
+                                                                   :status (:status presence)}))
+
+(defn get-presence
+  [user]
+  (get-in @state [:presence (get-in user [:jid :bare])]))
 
 (defn room
   [name]

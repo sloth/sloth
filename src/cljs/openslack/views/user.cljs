@@ -21,7 +21,7 @@
           [:div.square
            [:div.row [:h2 (:local user)]]
            (let [status-text [:p.status-text (:status user "Put your status text here")]]
-             (condp = (:availability user :active)
-               :active [:div.row [:div.status.online] status-text]
+             (condp = (:availability user :available)
+               :available [:div.row [:div.status.online] status-text]
                :offline [:div.row [:div.status.offline] status-text]
                :dnd [:div.row [:div.status.busy] status-text]))]])))))
