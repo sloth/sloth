@@ -44,6 +44,8 @@ strong {
   font-weight: bold;
 }
 
+@include fadeInOpacity(fadeIn,block);
+
 .client {
   height: 100%;
   width: 100%;

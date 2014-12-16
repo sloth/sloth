@@ -5,8 +5,9 @@
   border-radius: $radius;
 }
 
+
 @mixin fadeInOpacity ($name,$typeOfDisplay){
-  @keyframes ($name) {
+  @keyframes #{$name} {
     0% {
       display:none;
       opacity: 0;
@@ -22,12 +23,11 @@
       opacity: 1;
     }
   }
-  @-webkit-keyframes ($name) {
+  @-webkit-keyframes #{$name}  {
     0% {
       display:none;
       opacity: 0;
     }
-
     1% {
       display: $typeOfDisplay ;
       opacity: 0;

@@ -90,10 +90,9 @@
   }
 }
 
-@include fadeInOpacity(fadeIn,block);
+@include fadeInOpacity(fadeInOpa,block);
 
 .sidebar-list {
-
   h3 {
     cursor: pointer;
     padding: 0.5em;
@@ -107,6 +106,7 @@
     margin-right: 15px;
   }
   li {
+    @include transition(all 0.2s ease-in-out);
     color: $sidebar-text;
     cursor: pointer;
     padding-left: 0.5em;
@@ -119,25 +119,13 @@
       margin-right: 0.3em;
     }
     .read-status {
-      background: darken($sidebar-background,20%);
       display: none;
-      position: absolute;
-      z-index: $status-tooltip;
-      left: 240px;
-      top: 0;
+      font-size: 12px;
+      margin-top: 5px;
       padding: 0.4em;
-      width: 240px;
-
-      .left-arrow {
-        border-top: 14px solid transparent;
-        border-bottom: 14px solid transparent;
-        border-right:15px solid darken($sidebar-background,20%);
-        height: 0;
-        left: -15px;
-        position: absolute;
-        top: 0px;
-        width: 0;
-      }
+      z-index: $status-tooltip;
+      -webkit-animation-duration: 0.4s;
+      -webkit-animation-name: fadeInOpa;
     }
     &:hover {
       background: rgba(0,0,0,0.5);
@@ -145,12 +133,7 @@
       span, p {
         color: $sidebar-text-hover;
       }
-      .read-status {
-        display: block;
-        -webkit-animation-duration: 0.5s;
-        -webkit-animation-name: fadeInOpacity;
-      }
-      .close-channel {
+      .close-channel, .read-status {
         display: block;
       }
     }
@@ -183,11 +166,13 @@
     font-family: QS;
     font-weight: bold;
     display: none;
+    letter-spacing: 0.9px;
     position: absolute;
-    padding: 2px 0 2px;
+    padding: 2px 0 ;
     right: 0.5em;
     top: 0.3em;
     text-align: center;
+    height: 18px;
     width: 20px;
     z-index: $unreaded-messages-popup;
     &.close-channel {
@@ -197,14 +182,13 @@
       display: none;
       font-family: MNT;
       font-size: 14px;
-      letter-spacing: 0.9px;
       padding: 0;
       line-height: 21px;
       top: 5px;
       height: 20px;
       width: 20px;
       text-transform: uppercase;
-      right: 0.45em;
+      right: 0.55em;
       z-index: $delete-channel;
       &:hover {
         background: lighten($sidebar-close-channel-bg,10%);
