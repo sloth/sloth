@@ -1,146 +1,200 @@
 (ns openslack.xmpp
-  (:require [clojure.core.async :refer [go put! chan]])
-  (:import org.jivesoftware.smack.tcp.XMPPTCPConnection
-           org.jivesoftware.smack.ConnectionConfiguration
-           org.jivesoftware.smack.filter.PacketFilter
-           org.jivesoftware.smack.packet.Message
-           org.jivesoftware.smack.packet.Presence
-           org.jivesoftware.smack.RosterListener
-           org.jivesoftware.smack.PacketListener
-           org.jivesoftware.smack.MessageListener
-           org.jivesoftware.smack.ChatManager
-           org.jivesoftware.smack.ChatManagerListener
-           org.jivesoftware.smackx.muc.InvitationListener
-           org.jivesoftware.smackx.muc.packet.MUCUser;
-           org.jivesoftware.smackx.muc.packet.MUCInitialPresence;
-           org.jivesoftware.smackx.muc.MultiUserChat))
+  (:require [clojure.core.async :refer [go put! chan]]
+            [clojure.set :refer [map-invert]]
+            [openslack.xmpp.types :as types])
+  (:import rocks.xmpp.core.session.TcpConnectionConfiguration
+           rocks.xmpp.core.session.XmppSessionConfiguration
+           rocks.xmpp.core.session.SessionStatusListener
+           rocks.xmpp.core.stanza.model.client.Presence
+           rocks.xmpp.core.stanza.model.client.Message
+           rocks.xmpp.core.Jid
+           rocks.xmpp.core.stanza.MessageListener
+           rocks.xmpp.core.stanza.MessageEvent
+           rocks.xmpp.debug.gui.VisualDebugger
+           rocks.xmpp.core.session.XmppSession))
 
-(def ^{:doc "Security mode translation map."
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Constants
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def ^{:doc "Message type translation map."
        :dynamic true}
-  *security-mode*
-  {:disabled org.jivesoftware.smack.ConnectionConfiguration$SecurityMode/disabled})
+  *message-types*
+  {:chat rocks.xmpp.core.stanza.model.AbstractMessage$Type/CHAT
+   :groupchat rocks.xmpp.core.stanza.model.AbstractMessage$Type/GROUPCHAT
+   :headline rocks.xmpp.core.stanza.model.AbstractMessage$Type/HEADLINE
+   :error rocks.xmpp.core.stanza.model.AbstractMessage$Type/ERROR
+   :normal rocks.xmpp.core.stanza.model.AbstractMessage$Type/NORMAL})
 
-(defn connection
-  "Create xmpp connection."
-  [{:keys [resource domain username password port login]
-    :or {resource "Sloth" port 5222 login true}
-    :as opts}]
-  (let [conf (ConnectionConfiguration. "144.76.246.114" port domain)]
-    (.setSecurityMode conf (get-in *security-mode* [:disabled]))
-    (.setHostnameVerifier conf (reify javax.net.ssl.HostnameVerifier
-                                 (verify [_ _ _] true)))
-    (let [conn (XMPPTCPConnection. conf)]
-      (.connect conn)
-      (when login
-        (.login conn username password resource))
-      conn)))
+(def ^{:doc "Session status translation map."
+       :dynamic true}
+  *session-statuses*
+  {:initial rocks.xmpp.core.session.XmppSession$Status/INITIAL
+   :authenticated rocks.xmpp.core.session.XmppSession$Status/AUTHENTICATED
+   :authenticating rocks.xmpp.core.session.XmppSession$Status/AUTHENTICATING
+   :closed rocks.xmpp.core.session.XmppSession$Status/CLOSED
+   :closing rocks.xmpp.core.session.XmppSession$Status/CLOSING
+   :connected rocks.xmpp.core.session.XmppSession$Status/CONNECTED
+   :connecting rocks.xmpp.core.session.XmppSession$Status/CONNECTING})
 
-;; (defn chat-manager
-;;   "Get chat manager for specified connection."
-;;   [conn]
-;;   (ChatManager/getInstanceFor conn))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Messages & Chat
+;; Stanza transformation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (defn- make-message-listener
-;;   [chatlistener chatmanager channel]
-;;   (reify MessageListener
-;;     (processMessage [this chat message]
-;;       (let [r (put! channel [chat message])]
-;;         (when-not (true? r)
-;;           (.removeMessageListener chat this)
-;;           (.removeChatListener chatmanager chatlistener))))))
+(defprotocol ToNativeTransformer
+  (extern->clj [_] "Convert to openslack type."))
 
-;; (defn- make-chat-listener
-;;   [chatmanager channel]
-;;   (reify ChatManagerListener
-;;     (chatCreated [this chat locally?]
-;;       (.addMessageListener chat (make-message-listener this chatmanager channel)))))
+(extend-protocol ToNativeTransformer
+  Message
+  (extern->clj [message]
+    (types/map->Message
+     {:type (get (map-invert *message-types*) (.getType message))
+      :body (.getBody message)
+      :subject (.getSubject message)
+      :from (extern->clj (.getFrom message))
+      :to   (extern->clj (.getTo message))
+      :stanza message}))
 
-(defmulti listen-messages (comp class first vector))
+  Jid
+  (extern->clj [jid]
+    (types/map->Jid {:local (.getLocal jid)
+                     :domain (.getDomain jid)
+                     :resource (.getDomain jid)}))
 
-;; (defmethod listen-messages ChatManager
-;;   ([chatm] (listen-messages chatm (chan)))
-;;   ([chatm channel]
-;;    (let [chatlistener (make-chat-listener chatm channel)]
-;;      (.addChatListener chatm chatlistener)
-;;      channel)))
+  rocks.xmpp.core.session.XmppSession$Status
+  (extern->clj [status]
+    (get (map-invert *session-statuses*) status :unknownstatus))
+
+  Object
+  (extern->clj [obj]
+    (types/map->Unknown {:data obj})))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Roster
+;; Session management
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Set default subscription mode
-(org.jivesoftware.smack.Roster/setDefaultSubscriptionMode
- (org.jivesoftware.smack.Roster$SubscriptionMode/accept_all))
+(defn- make-connection-config
+  [{:keys [domain] :as cfg}]
+  (let [builder (doto (TcpConnectionConfiguration/builder)
+                  (.port 5222)
+                  (.keepAliveInterval -1)
+                  (.hostname domain)
+                  (.secure false))]
+    (.build builder)))
 
-(defn get-roster
-  [conn]
-  (.getRoster conn))
+(defn- make-session-config
+  [_]
+  (let [builder (XmppSessionConfiguration/builder)]
+    (.build builder)))
 
-;; TODO: resource management
-(defn listen-roster
-  ([roster] (listen-roster roster (chan)))
-  ([roster channel]
-   (let [listener (reify RosterListener
-                    (entriesAdded [_ addresses]
-                      (put! channel [:entries-added addresses]))
-                    (entriesDeleted [_ addresses]
-                      (put! channel [:entries-deleted addresses]))
-                    (entriesUpdated [_ addresses]
-                      (put! channel [:entries-updated addresses]))
-                    (presenceChanged [_ presence]
-                      (put! channel [:presence presence])))]
-     (.addRosterListener roster listener)
+(defn make-session
+  "Create new not connected session."
+  [{:keys [domain] :as cfg}]
+  (let [connection-cfg (make-connection-config cfg)
+        session-cfg (make-session-config cfg)
+        connection-cfgs (into-array TcpConnectionConfiguration [connection-cfg])
+        session (XmppSession. domain session-cfg connection-cfgs)]
+    (.connect session)
+    session))
+
+(defn authenticate
+  "Send the authentication message to the session."
+  [session {:keys [username password resource]
+            :or {resource "Sloth"}
+            :as cfg}]
+  (.login session username password resource))
+
+(defn send-initial-presence
+  "Send the initial presence message to jabber server."
+  [session]
+  (let [presence (Presence.)]
+    (.send session presence)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Listeners
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn listen-session-status
+  "Lister session statuses and return a channel."
+  ([session] (listen-session-status session (chan)))
+  ([session channel]
+   (let [listener (reify SessionStatusListener
+                    (sessionStatusChanged [this event]
+                      (let [status (.getStatus event)
+                            status (extern->clj status)
+                            rsp (put! channel status)]
+                        (when-not (true? rsp)
+                          (.removeSessionStatusListener session this)))))]
+     (.addSessionStatusListener session listener)
+     channel)))
+
+(defn listen-messages
+  "Listen messages from the session."
+  ([session] (listen-messages session (chan)))
+  ([session channel]
+   (let [listener (reify MessageListener
+                    (handle [this event]
+                      (let [message (.getMessage event)
+                            message (extern->clj message)
+                            rsp (put! channel message)]
+                        (when-not (true? rsp)
+                          (.removeMessageListener session this)))))]
+     (.addMessageListener session listener)
      channel)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; MUC
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def ^{:doc "Presence type translation map."
-       :dynamic true}
-  *presence-types*
-  {:available org.jivesoftware.smack.packet.Presence$Type/available
-   :unavailable org.jivesoftware.smack.packet.Presence$Type/unavailable
-   :error org.jivesoftware.smack.packet.Presence$Type/error})
+;; (def ^{:doc "Presence type translation map."
+;;        :dynamic true}
+;;   *presence-types*
+;;   {:available org.jivesoftware.smack.packet.Presence$Type/available
+;;    :unavailable org.jivesoftware.smack.packet.Presence$Type/unavailable
+;;    :error org.jivesoftware.smack.packet.Presence$Type/error})
 
-(def ^{:doc "Message type translation map."
-       :dynamic true}
-  *message-types*
-  {:chat org.jivesoftware.smack.packet.Message$Type/chat
-   :groupchat org.jivesoftware.smack.packet.Message$Type/groupchat
-   :normal org.jivesoftware.smack.packet.Message$Type/normal})
+;; (defn make-presence
+;;   [{:keys [to type]}]
+;;   (let [presence (Presence. (get *presence-types* type))]
+;;     (when to
+;;       (.setTo presence to))
+;;     presence))
 
-(defn make-presence
-  [{:keys [to type]}]
-  (let [presence (Presence. (get-in *presence-types* [type]))]
-    (when to
-      (.setTo presence to))
-    presence))
+;; (defn make-message
+;;   [{:keys [to type]}]
+;;   (let [msg (Message. to (get *message-types* type))]
+;;     msg))
+
+;; (defn- make-joinroom-packet
+;;   [{:keys [room nickname password]}]
+;;   (let [room (.toLowerCase room)
+;;         to   (str room "@conference.niwi.be" "/" nickname)
+;;         presence (make-presence {:type :available
+;;                                  :to to})
+;;         extension (MUCInitialPresence.)]
+;;     (when password
+;;       (.setPassword extension password))
+;;     (.addExtension presence extension)
+;;     presence))
 
 ;; (defn multi-user-chat
 ;;   [conn room]
-;;   (MultiUserChat. conn room))
+;;   (let [mucmanager (MultiUserChatManager/getInstanceFor conn)
+;;         muc (.getMultiUserChat mucmanager room)]
+;;     muc))
 
-(defn- make-joinroom-packet
-  [{:keys [room nickname password]}]
-  (let [room (.toLowerCase room)
-        to   (str room "/" nickname)
-        presence (make-presence {:type :available
-                                 :to nickname})
-        extension (MUCInitialPresence.)]
-    (when password
-      (.setPassword extension password))
-    (.addExtension presence extension)
-    presence))
+;; (defn join-room
+;;   [^MultiUserChat muc {:keys [nickname password] :as opts}]
+;;   (if (nil? password)
+;;     (.join muc nickname)
+;;     (.join muc nickname password))))
 
-(defn join-room
-  [conn {:keys [room nickname password] :as opts}]
-  (let [packet (make-joinroom-packet opts)]
-    (.sendPacket conn packet)))
+;; (defn invite-to-room
+;;   ([^MultiUserChat muc nickname reason]
+;;    (.invite muc nickname reason))
+;;   ([^MultiUserChat muc nickname reason password]
+;;    (.invite muc nickname reason password)))
 
 ;; (defn listen-muc-invitations
 ;;   ([conn] (listen-muc-invitations conn (chan)))
@@ -167,10 +221,10 @@
 ;; Packet listening
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def ^{:doc "Packet Filter that accepts all packets."}
-  packet-filter-all
-  (reify PacketFilter
-    (accept [_ packet] true)))
+;; (def ^{:doc "Packet Filter that accepts all packets."}
+;;   packet-filter-all
+;;   (reify PacketFilter
+;;     (accept [_ packet] true)))
 
 ;; Filters for groupchat rooms.
 ;; fromRoomFilter = FromMatchesFilter.create(room);
@@ -180,30 +234,33 @@
 ;; new AndFilter(PacketTypeFilter.MESSAGE, new PacketExtensionFilter(new MUCUser()),
 ;;               new NotFilter(MessageTypeFilter.ERROR));
 
-(defn listen-received-packets
-  "Add packet listener to the connection and
-  return a channel."
-  ([conn] (listen-received-packets conn packet-filter-all (chan)))
-  ([conn filter] (listen-received-packets conn filter (chan)))
-  ([conn filter channel]
-   (let [listener (reify PacketListener
-                    (processPacket [this packet]
-                      (let [r (put! channel packet)]
-                        (when-not (true? r)
-                          (.removePacketListener conn this)))))]
-     (.addPacketListener conn listener filter)
-     channel)))
 
-(defn listen-sending-packets
-  "Add packet listener to the connection and
-  return a channel."
-  ([conn] (listen-sending-packets conn packet-filter-all (chan)))
-  ([conn filter] (listen-sending-packets conn filter (chan)))
-  ([conn filter channel]
-   (let [listener (reify PacketListener
-                    (processPacket [this packet]
-                      (let [r (put! channel packet)]
-                        (when-not (true? r)
-                          (.removePacketListener conn this)))))]
-     (.addPacketSendingListener conn listener filter)
-     channel)))
+
+
+;; (defn listen-received-packets
+;;   "Add packet listener to the connection and
+;;   return a channel."
+;;   ([conn] (listen-received-packets conn packet-filter-all (chan)))
+;;   ([conn filter] (listen-received-packets conn filter (chan)))
+;;   ([conn filter channel]
+;;    (let [listener (reify PacketListener
+;;                     (processPacket [this packet]
+;;                       (let [r (put! channel packet)]
+;;                         (when-not (true? r)
+;;                           (.removePacketListener conn this)))))]
+;;      (.addPacketListener conn listener filter)
+;;      channel)))
+
+;; (defn listen-sending-packets
+;;   "Add packet listener to the connection and
+;;   return a channel."
+;;   ([conn] (listen-sending-packets conn packet-filter-all (chan)))
+;;   ([conn filter] (listen-sending-packets conn filter (chan)))
+;;   ([conn filter channel]
+;;    (let [listener (reify PacketListener
+;;                     (processPacket [this packet]
+;;                       (let [r (put! channel packet)]
+;;                         (when-not (true? r)
+;;                           (.removePacketListener conn this)))))]
+;;      (.addPacketSendingListener conn listener filter)
+;;      channel)))

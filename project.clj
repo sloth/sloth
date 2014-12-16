@@ -21,10 +21,12 @@
                  [weasel "0.4.2"]
 
                  ;; XMPP components
-                 [org.igniterealtime.smack/smack-core "4.0.6"]
-                 [org.igniterealtime.smack/smack-tcp "4.0.6"]
-                 [org.igniterealtime.smack/smack-extensions "4.0.6"]
-                 [org.igniterealtime.smack/smack-experimental "4.0.6"]
+
+                 [rocks.xmpp/xmpp-core "0.4.0"]
+                 [rocks.xmpp/xmpp-core-client "0.4.0"]
+                 [rocks.xmpp/xmpp-extensions "0.4.0"]
+                 [rocks.xmpp/xmpp-extensions-client "0.4.0"]
+                 [rocks.xmpp/xmpp-debug "0.4.0"]
 
                  ;; Frontend dependencies
                  [org.clojure/clojurescript "0.0-2411"]
