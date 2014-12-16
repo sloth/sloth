@@ -124,7 +124,7 @@ $ lein hicv 2clj resources/public/sandbox/index.html
 Install ejabberd using your package manager. In case of Archlinux execute as root:
 
 ----
-# pacman -S ejabberd
+$ pacman -S ejabberd
 ----
 
 Now, having server installed you have different ways to start it. If you want
