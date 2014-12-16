@@ -40,7 +40,6 @@
     (swap! st/state assoc :page {:state :login})))
 
 (defroute room-route "/room/:name" [name]
-  (.log js/console "ROOOM " name)
   (if (st/logged-in?)
     (swap! st/state assoc :page {:state :room, :room name})
     (navigate "/login")))

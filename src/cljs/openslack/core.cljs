@@ -71,14 +71,29 @@
   []
   nil)
 
+(defn start-xmpp-session!
+  []
+  (let [client (:client @st/state)]
+    (xmpp/send-presence client {:show :chat})
+    (xmpp/get-roster client)))
+
 (defn render-view!
   []
   (om/root views/app st/state {:target (js/document.querySelector "body")}))
 
+(defn watch-login!
+  []
+  (add-watch st/state :log-in (fn [_ _ oldval newval]
+                                (when (and (not (st/logged-in? oldval))
+                                           (st/logged-in? newval))
+                                  (do
+                                    (.log js/console "Sending presence" (:client @st/state))
+                                    (start-xmpp-session!))))))
+
 (defn main
   []
   (start-history!)
-  (start-processes!)
+  (watch-login!)
   (render-view!)
 )
 

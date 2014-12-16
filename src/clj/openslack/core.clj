@@ -6,7 +6,6 @@
             [openslack.bots :as bots])
   (:gen-class))
 
-
 (defn make-system
   "OpenSlack system constructor."
   []

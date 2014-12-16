@@ -22,20 +22,19 @@
      :room {:name "anime"}}
    ]
    :channels [
-              {:name "sloth"
-               :unread 3}
-              {:name "general"
-               :unread 2}
-              {:name "random"
-               :unread 0}
-              ]
+      {:name "sloth"
+       :jid "sloth@conference.niwi.be"
+       :unread 0}
+   ]
    :conversations {:chat {}, :groupchat {}}})
 
 (def state (atom (make-initial-state)))
 
 (defn logged-in?
-  []
-  (not (nil? (:user @state))))
+  ([]
+     (logged-in? @state))
+  ([st]
+     (not (nil? (:user st)))))
 
 (defn initialize-session
   [{:keys [user client]}]

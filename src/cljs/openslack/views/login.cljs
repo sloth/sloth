@@ -33,8 +33,8 @@
 
     om/IInitState
     (init-state [_]
-      {:username "dialelo@niwi.be"
-       :password "dragon"
+      {:username ""
+       :password ""
        :error ""})
 
     om/IRenderState
@@ -42,6 +42,7 @@
       (html [:form
               [:label "Username"]
               [:input {:type "text"
+                       :placeholder "you@server.com"
                        :on-change (fn [ev]
                                     (om/set-state! owner (assoc state :username (.-value (.-target ev)))))
                        :default-value (:username state)}]

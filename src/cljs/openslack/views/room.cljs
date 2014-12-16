@@ -3,7 +3,6 @@
             [sablono.core :as s :include-macros true]
             [openslack.state :as st]))
 
-
 (defn message
   [state owner]
   (reify
@@ -47,5 +46,4 @@
             [:div.messages-container
              (om/build-all message (st/room-messages room))]
             [:div.write-message [:textarea " "] [:button "Send"]]]
-           [:div.chat-sidebar-holder [:div]]]])))
-  ))
+           [:div.chat-sidebar-holder [:div]]]])))))
