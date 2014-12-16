@@ -1,4 +1,4 @@
-(ns openslack.views.room
+(ns openslack.views.contact
   (:require [om.core :as om :include-macros true]
             [sablono.core :as s :include-macros true]
             [openslack.state :as st]
@@ -6,40 +6,40 @@
             [openslack.xmpp :as xmpp]))
 
 (defn send-content-message
-  [room message]
-  (let [bare-room (get-in room [:jid :bare])
+  [user message]
+  (let [bare-jid (get-in user [:jid :bare])
         client (:client @st/state)
-        msg {:to bare-room
-             :type :groupchat
+        msg {:to bare-jid
+             :type :chat
              :body message}]
     (xmpp/send-message client msg)))
 
-(defn room
+(defn contact
   [state owner]
   (reify
     om/IDisplayName
-    (display-name [_] "Room")
+    (display-name [_] "Contact")
 
     om/IInitState
     (init-state [_] {:message ""})
 
     om/IRenderState
     (render-state [_ {:keys [message]}]
-      (when-let [room-name (get-in state [:page :room])]
-        (let [r (st/room room-name)]
+      (when-let [contact-name (get-in state [:page :contact])]
+        (let [user (st/contact contact-name)
+              presence (st/get-presence (:jid user))]
           (s/html
            [:section.client-main
             [:header
-             [:h1 (str "#" (get-in r [:jid :local]))]
+             [:h1 (str "@" contact-name)]
              [:h2
-              "Le topic del dia: Los "
-              [:strong "Sloth"]
-              " dominaran el mundo\n        "]]
+              (:status presence)
+              ]]
             [:hr]
             [:div.chat-zone
              [:div.chat-container
               [:div.messages-container
-               (om/build-all msg/message (st/room-messages r))]
+               (om/build-all msg/message (st/contact-messages user))]
               [:div.write-message
                [:textarea {:on-key-up (fn [e]
                                         (let [value (-> e
@@ -48,8 +48,7 @@
                                           (om/set-state! owner :message value)))}]
                [:button {:on-click (fn [e]
                                      (.preventDefault e)
-                                     (send-content-message r message)
+                                     (send-content-message user message)
                                      (om/set-state! owner :message "")
-                                     ; clean textarea ()
                                      )} "Send"]]]
              [:div.chat-sidebar-holder [:div]]]]))))))

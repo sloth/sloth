@@ -68,7 +68,15 @@
   (first (filter #(= name (get-in % [:jid :local]))
                  (:channels @state))))
 
+(defn contact
+  [name]
+  (first (filter #(= name (get-in % [:jid :local]))
+                 (:roster @state))))
+
 (defn room-messages
   [room]
   (get-in @state [:conversations :groupchat (get-in room [:jid :local])]))
-; TODO: functions for updating state
+
+(defn contact-messages
+  [user]
+  (get-in @state [:conversations :chat (get-in user [:jid :local])]))

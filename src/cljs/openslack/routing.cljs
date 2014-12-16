@@ -44,9 +44,9 @@
     (swap! st/state assoc :page {:state :room, :room name})
     (navigate "/login")))
 
-(defroute contact-route "/contact/:jid" [jid]
+(defroute contact-route "/contact/:name" [name]
   (if (st/logged-in?)
-    (swap! st/state assoc :page {:state :contact, :jid jid})
+    (swap! st/state assoc :page {:state :contact, :contact name})
     (navigate "/login")))
 
 (defroute catch-all-route "*" []
