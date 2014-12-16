@@ -14,43 +14,6 @@
 
 (enable-console-print!)
 
-;; XMPP
-
-;; Start XMPP session
-
-;(go
-; TODO: roster-updating process
-;(def roster-updates-chan (xmpp/roster-updates client))
-;(go (loop []
-;      (let [rupdate (<! roster-updates-chan)
-;            subscription (:subscription rupdate)
-;            jid (:jid rupdate)
-;            bare (:bare jid)]
-;        (case (:subscription rupdate)
-;          :none :none ; TODO: fill this in
-;          :both :both
-;          :to   :to
-;          :from :from))
-;      (recur)))
-
-; Chat updating process
-;(def chats-chan (xmpp/chats client))
-;(go-loop [chat (<! chats-chan)]
-; (swap! st/state st/add-chat chat)
-; (recur (<! chats-chan)))
-
-; TODO: chat-states updating process
-;(def chat-states-chan (xmpp/chat-states client))
-;(go-loop [chat-state (<! chat-states-chan)]
-;  (println "chat-state: " chat-state)
-;  (recur (<! chat-states-chan)))
-
-
-; TODO: subscription-managing process
-;(def subscriptions-chan (xmpp/subscriptions client))
-;(def unsubscriptions-chan (xmpp/unsubscriptions client))
-;
-
 ;; Enable browser enabled repl.
 (ws-repl/connect "ws://localhost:9001")
 

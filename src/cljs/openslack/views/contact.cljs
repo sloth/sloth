@@ -2,17 +2,8 @@
   (:require [om.core :as om :include-macros true]
             [sablono.core :as s :include-macros true]
             [openslack.state :as st]
-            [openslack.views.message :as msg]
-            [openslack.xmpp :as xmpp]))
-
-(defn send-content-message
-  [user message]
-  (let [bare-jid (get-in user [:jid :bare])
-        client (:client @st/state)
-        msg {:to bare-jid
-             :type :chat
-             :body message}]
-    (xmpp/send-message client msg)))
+            [openslack.views.messages :as msg]
+            [openslack.communicator :as comm]))
 
 (defn contact
   [state owner]
@@ -39,7 +30,7 @@
             [:div.chat-zone
              [:div.chat-container
               [:div.messages-container
-               (om/build-all msg/message (st/contact-messages user))]
+               (om/build-all msg/contact-message (st/contact-messages user))]
               [:div.write-message
                [:textarea {:on-key-up (fn [e]
                                         (let [value (-> e
@@ -48,7 +39,8 @@
                                           (om/set-state! owner :message value)))}]
                [:button {:on-click (fn [e]
                                      (.preventDefault e)
-                                     (send-content-message user message)
-                                     (om/set-state! owner :message "")
+                                     (when message
+                                       (comm/send-personal-message (get-in user [:jid :bare]) message)
+                                       (om/set-state! owner :message ""))
                                      )} "Send"]]]
              [:div.chat-sidebar-holder [:div]]]]))))))

@@ -247,11 +247,16 @@
 
 ;; Chats
 
-(defn raw-chat->chat [rchat]
+(defn raw-chat->chat
+  [rchat]
+  (js* "debugger;")
   {:body (.-body rchat)
    :type (keyword (.-type rchat))
    :from (raw-jid->jid (.-from rchat))
-   :to (raw-jid->jid (.-to rchat))})
+   :to (raw-jid->jid (.-to rchat))
+   :timestamp (if-let [stamp (some-> rchat .-delay .-stamp)]
+               stamp
+               (js/Date.))})
 
 (defn chats [client]
   (let [c (async/chan 10 (map raw-chat->chat))]

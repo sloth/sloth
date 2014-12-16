@@ -45,8 +45,12 @@
 (defn add-chat
   [app-state chat]
   (let [type (:type chat)
-        from (-> chat :from :local)]
+        from (get-in chat [:from :bare])]
     (update-in app-state [:conversations type from] (fnil conj []) chat)))
+
+(defn add-own-chat
+  [app-state chat]
+  (update-in app-state [:conversations :chat (:to chat)] (fnil conj []) chat))
 
 (defn join-room
   [app-state room]
@@ -75,8 +79,8 @@
 
 (defn room-messages
   [room]
-  (get-in @state [:conversations :groupchat (get-in room [:jid :local])]))
+  (get-in @state [:conversations :groupchat (get-in room [:jid :bare])]))
 
 (defn contact-messages
   [user]
-  (get-in @state [:conversations :chat (get-in user [:jid :local])]))
+  (get-in @state [:conversations :chat (get-in user [:jid :bare])]))
