@@ -11,8 +11,8 @@
     om/IRender
     (render [_]
       (when (:user state)
-        (let [user (:user state)
-              presence (st/get-presence user)]
+        (let [jid (:user state)
+              presence (st/get-presence {:jid jid})]
           (s/html
            [:div.active-user
                                         ; TODO: avatar
@@ -22,7 +22,7 @@
               :alt "#user",
               :src "/static/imgs/placerholder-avatar-1.jpg"}]
             [:div.square
-             [:div.row [:h2 (:local user)]]
+             [:div.row [:h2 (:local jid)]]
              (let [status-text [:p.status-text (:status presence)]]
                (condp = (:availability presence :available)
                  :available [:div.row [:div.status.online] status-text]

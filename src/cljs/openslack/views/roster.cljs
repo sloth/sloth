@@ -23,8 +23,8 @@
                     [:li {:on-click #(navigate (contact-route {:name name}))}
                      (condp = (:availability presence)
                        :available [:span.status.online]
+                       :unavailable [:span.status.offline]
                        :dnd [:span.status.busy]
-                       :offline [:span.status.offline]
                        [:span.status.offline])
                       name
 ;                     [:i "3"]
