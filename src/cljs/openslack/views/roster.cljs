@@ -1,6 +1,6 @@
 (ns openslack.views.roster
   (:require [om.core :as om :include-macros true]
-            [sablono.core :as html :refer-macros [html]]))
+            [sablono.core :as s :include-macros true]))
 
 (defn roster
   [state owner]
@@ -11,7 +11,12 @@
     om/IRender
     (render [_]
       (when (:roster state)
-        (html [:h2 "Roster"
-               [:ul
-                (for [user (:roster state)]
-                  [:li (get-in user [:jid :local])])]])))))
+        (s/html [:div.room-list.sidebar-list
+                 [:h3 "Contact List"]
+                 [:ul
+                  (for [contact (:roster state)]
+                    [:li.unread
+                     [:span.status.online]
+                     (get-in contact [:jid :local])
+                     [:i "3"]
+                     [:div.read-status "Lorem ipsum dolor sit amet."]])]])))))

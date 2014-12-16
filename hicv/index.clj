@@ -10,7 +10,64 @@
    [:section#app.client
     [:div.client-sidebar-holder
      [:div.client-sidebar
-      [:div.logo "SlothLogo"]
+      [:div.client-lists
+       [:div.logo "SlothLogo"]
+       [:div.room-list.sidebar-list
+        [:h3 "Channels"]
+        [:ul
+         [:li.unread
+          [:span "#"]
+          "SlothMyMachine"
+          [:i "3"]
+          [:i.close-channel "x"]]
+         [:li.unread
+          [:span "#"]
+          "SlothThisShit"
+          [:i "4"]
+          [:i.close-channel "x"]]
+         [:li [:span "#"] "SlothThugLife" [:i.close-channel "x"]]]]
+       [:hr]
+       [:div.room-list.sidebar-list
+        [:h3.nohover "Invited to this channels"]
+        [:ul
+         [:li.invited
+          [:span "#"]
+          "SlothOnElorrio"
+          [:i "!"]
+          [:p "By " [:a {:href "#"} "@dialelo"]]]
+         [:li.invited
+          [:span "#"]
+          "SlothAreBadass"
+          [:i "!"]
+          [:p "By " [:a {:href "#"} "@mgdelacroix"]]]
+         [:li.invited
+          [:span "#"]
+          "SlothNucelarSurvivor"
+          [:i "!"]
+          [:p "By " [:a {:href "#"} "@rsanchezbalo"]]]
+         [:li.invited
+          [:span "#"]
+          "SlothSlacker"
+          [:i "!"]
+          [:p "By " [:a {:href "#"} "@niwibe"]]]]]
+       [:hr]
+       [:div.room-list.sidebar-list
+        [:h3 "Contact List"]
+        [:ul
+         [:li.unread
+          [:span.status.online]
+          "SlothMyMachine"
+          [:i "3"]
+          [:div.read-status "Lorem ipsum dolor sit amet."]]
+         [:li.unread
+          [:span.status.busy]
+          "SlothThisShit"
+          [:i "4"]
+          [:div.read-status "Lorem ipsum dolor sit amet."]]
+         [:li
+          [:span.status.offline]
+          "SlothThugLife\n                "
+          [:div.read-status "Lorem ipsum dolor sit amet."]]]]]
       [:div.active-user
        [:img
         {:height "50",
@@ -23,37 +80,7 @@
          [:div.status.online]
          " "
          "<!-- #ESTADOS:Online, Offline, Busy -->"
-         [:p.status-text "Tralari tralara, traliron pompan"]]]]
-      [:div.room-list.sidebar-list
-       [:h3 "Channels"]
-       [:ul
-        [:li.unread [:span "#"] "SlothMyMachine" [:i "3"]]
-        [:li.unread [:span "#"] "SlothThisShit" [:i "4"]]
-        [:li [:span "#"] "SlothThugLife\n            "]]]
-      [:hr]
-      [:div.room-list.sidebar-list
-       [:h3.nohover "Invited to this channels"]
-       [:ul
-        [:li.invited
-         [:span "#"]
-         "SlothOnElorrio"
-         [:i "!"]
-         [:p "By " [:a {:href "#"} "@dialelo"]]]
-        [:li.invited
-         [:span "#"]
-         "SlothAreBadass"
-         [:i "!"]
-         [:p "By " [:a {:href "#"} "@mgdelacroix"]]]
-        [:li.invited
-         [:span "#"]
-         "SlothNucelarSurvivor"
-         [:i "!"]
-         [:p "By " [:a {:href "#"} "@rsanchezbalo"]]]
-        [:li.invited
-         [:span "#"]
-         "SlothSlacker"
-         [:i "!"]
-         [:p "By " [:a {:href "#"} "@niwibe"]]]]]]]
+         [:p.status-text "Tralari tralara, traliron pompan"]]]]]]
     [:section.client-main
      [:header
       [:h1 "#SlothMyMachine"]
