@@ -9,7 +9,7 @@
   [:body
    [:section#app.client
     [:div.client-sidebar-holder
-     [:sidebar.client-sidebar
+     [:div.client-sidebar
       [:div.logo "SlothLogo"]
       [:div.active-user
        [:img
@@ -245,4 +245,4 @@
           [:p.content
            "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Necessitatibus enim est sapiente ratione impedit!\n                  "]]]]
        [:div.write-message [:textarea " "] [:button "Send"]]]
-      [:div.chat-sidebar-holder [:sidebar]]]]]]])
+      [:div.chat-sidebar-holder [:div]]]]]]])
