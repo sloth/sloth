@@ -7,19 +7,17 @@
             [buddy.sign.generic :as sign])
   (:import rocks.xmpp.core.session.SessionStatusListener))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Session status watcher
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn start-session-status-watcher
-  [session kill]
+  [session]
   (let [statuses (xmpp/listen-session-status session)]
     (go-loop []
-      (let [[event c] (alts! [kill statuses])]
-        (cond
-          (= kill c)
-          (close! statuses)
-
-          :else
-          (when-not (nil? event)
-            (println "STATUS: " event)
-            (recur)))))))
+      (when-let [status (<! statuses)]
+        (println "STATUS: " status)
+        (recur)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Commands
@@ -101,20 +99,22 @@
 ;;           (recur))))))
 
 (defn start-messages-watcher
-  [session kill]
+  [session]
   (let [messages (xmpp/listen-messages session)]
     (go-loop []
-      (let [[message c] (alts! [kill messages])]
-        (cond
-          (= kill c)
-          (close! messages)
+      (when-let [message (<! messages)]
+        (println "*start******************************")
+        (println "received message:" message)
+        (println "*end******************************")
+        (recur)))))
 
-          :else
-          (when-not (nil? message)
-            (println "*start******************************")
-            (println "received message:" message)
-            (println "*end******************************")
-            (recur)))))))
+(defn start-presence-watcher
+  [session]
+  (let [presences (xmpp/listen-presence session)]
+    (go-loop []
+      (when-let [presence (<! presences)]
+        (println "received presence:" presence)
+        (recur)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Component definition
@@ -125,34 +125,27 @@
   (start [component]
     (println "Start sloth.")
     (let [config (get-in config [:bots :sloth])
-          session (xmpp/make-session config)
-          kill (chan)
-          publisher (chan)
-          publication (pub publisher #(:topic %))]
+          session (xmpp/make-session config)]
 
-      (start-session-status-watcher session kill)
-
+      (start-session-status-watcher session)
       (xmpp/authenticate session config)
       (xmpp/send-initial-presence session)
 
       ;; Sniffers
-      (start-messages-watcher session kill)
+      (start-messages-watcher session)
+      (start-presence-watcher session)
 
       ;; Internal services routines
       ;; (initialize-messages-watcher publication)
 
       (assoc component
-        :kill kill
-        :session session
-        :publication publication)))
+        :session session)))
 
   (stop [component]
     (println "Stop sloth")
-    (let [{:keys [kill session]} component]
-      (close! kill)
+    (let [{:keys [session]} component]
       (.close session)
       (assoc component
-        :publication nil
         :session nil))))
 
 (defn sloth

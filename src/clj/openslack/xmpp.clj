@@ -1,5 +1,5 @@
 (ns openslack.xmpp
-  (:require [clojure.core.async :refer [go put! chan]]
+  (:require [clojure.core.async :refer [go put! chan <! close!]]
             [clojure.set :refer [map-invert]]
             [openslack.xmpp.types :as types])
   (:import rocks.xmpp.core.session.TcpConnectionConfiguration
@@ -7,8 +7,10 @@
            rocks.xmpp.core.session.SessionStatusListener
            rocks.xmpp.core.stanza.model.client.Presence
            rocks.xmpp.core.stanza.model.client.Message
+           rocks.xmpp.extensions.ping.PingManager
            rocks.xmpp.core.Jid
            rocks.xmpp.core.stanza.MessageListener
+           rocks.xmpp.core.stanza.PresenceListener
            rocks.xmpp.core.stanza.MessageEvent
            rocks.xmpp.debug.gui.VisualDebugger
            rocks.xmpp.core.session.XmppSession))
@@ -37,38 +39,67 @@
    :connected rocks.xmpp.core.session.XmppSession$Status/CONNECTED
    :connecting rocks.xmpp.core.session.XmppSession$Status/CONNECTING})
 
+(def ^{:doc "Session status translation map."
+       :dynamic true}
+  *presence-types*
+  {:error rocks.xmpp.core.stanza.model.AbstractPresence$Type/ERROR
+   :probe rocks.xmpp.core.stanza.model.AbstractPresence$Type/PROBE
+   :subscribe rocks.xmpp.core.stanza.model.AbstractPresence$Type/SUBSCRIBE
+   :subscribed rocks.xmpp.core.stanza.model.AbstractPresence$Type/SUBSCRIBED
+   :unavailable rocks.xmpp.core.stanza.model.AbstractPresence$Type/UNAVAILABLE
+   :unsubscribe rocks.xmpp.core.stanza.model.AbstractPresence$Type/UNSUBSCRIBE
+   :unsubscribed rocks.xmpp.core.stanza.model.AbstractPresence$Type/UNSUBSCRIBED})
+
+(def ^{:doc "Session status translation map."
+       :dynamic true}
+  *presence-show-types*
+  {:away rocks.xmpp.core.stanza.model.AbstractPresence$Show/AWAY
+   :chat rocks.xmpp.core.stanza.model.AbstractPresence$Show/CHAT
+   :dnd rocks.xmpp.core.stanza.model.AbstractPresence$Show/DND
+   :xa rocks.xmpp.core.stanza.model.AbstractPresence$Show/XA})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Stanza transformation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defprotocol ToNativeTransformer
-  (extern->clj [_] "Convert to openslack type."))
+(defmulti extern->clj class)
 
-(extend-protocol ToNativeTransformer
-  Message
-  (extern->clj [message]
-    (types/map->Message
-     {:type (get (map-invert *message-types*) (.getType message))
-      :body (.getBody message)
-      :subject (.getSubject message)
-      :from (extern->clj (.getFrom message))
-      :to   (extern->clj (.getTo message))
-      :stanza message}))
+(defmethod extern->clj Message
+  [message]
+  (types/map->Message
+   {:type (get (map-invert *message-types*) (.getType message))
+    :body (.getBody message)
+    :subject (.getSubject message)
+    :from (extern->clj (.getFrom message))
+    :to   (extern->clj (.getTo message))
+    :stanza message}))
 
-  Jid
-  (extern->clj [jid]
-    (types/map->Jid {:local (.getLocal jid)
-                     :domain (.getDomain jid)
-                     :resource (.getDomain jid)}))
+(defmethod extern->clj Jid
+  [jid]
+  (types/map->Jid {:local (.getLocal jid)
+                   :domain (.getDomain jid)
+                   :resource (.getDomain jid)}))
 
-  rocks.xmpp.core.session.XmppSession$Status
-  (extern->clj [status]
-    (get (map-invert *session-statuses*) status :unknownstatus))
+(defmethod extern->clj Presence
+  [presence]
+  (types/map->Presence
+   {:type (get (map-invert *presence-types*) (.getType presence))
+    :show (extern->clj (.getShow presence))
+    :from (extern->clj (.getFrom presence))
+    :to   (extern->clj (.getTo presence))
+    :stanza presence}))
 
-  Object
-  (extern->clj [obj]
-    (types/map->Unknown {:data obj})))
+(defmethod extern->clj rocks.xmpp.core.session.XmppSession$Status
+  [status]
+  (get (map-invert *session-statuses*) status :unknown))
+
+(defmethod extern->clj rocks.xmpp.core.stanza.model.AbstractPresence$Show
+  [status]
+  (get (map-invert *presence-show-types*) status :unknown))
+
+(defmethod extern->clj :default
+  [obj]
+  (types/map->Unknown {:data obj}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Session management
@@ -95,6 +126,11 @@
         session-cfg (make-session-config cfg)
         connection-cfgs (into-array TcpConnectionConfiguration [connection-cfg])
         session (XmppSession. domain session-cfg connection-cfgs)]
+
+    ;; Explicitly enable ping
+    ;; (let [pingmanager (.getExtensionManager session (.-class PingManager))]
+    ;;   (.setEnabled pingmanager true))
+
     (.connect session)
     session))
 
@@ -110,6 +146,20 @@
   [session]
   (let [presence (Presence.)]
     (.send session presence)))
+
+
+(defn wait-close
+  [session]
+  (let [channel (chan 1)
+        listener (reify SessionStatusListener
+                    (sessionStatusChanged [this event]
+                      (let [status (extern->clj (.getStatus event))]
+                        (when (or (= status :closing)
+                                  (= status :closed))
+                          (close! channel)
+                          (.removeSessionStatusListener session this)))))]
+     (.addSessionStatusListener session listener)
+     channel))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Listeners
@@ -127,6 +177,13 @@
                         (when-not (true? rsp)
                           (.removeSessionStatusListener session this)))))]
      (.addSessionStatusListener session listener)
+
+     ;; Wait session close events and
+     ;; close resources when connection is closed.
+     (go
+       (<! (wait-close session))
+       (close! channel))
+
      channel)))
 
 (defn listen-messages
@@ -141,6 +198,33 @@
                         (when-not (true? rsp)
                           (.removeMessageListener session this)))))]
      (.addMessageListener session listener)
+
+     ;; Wait session close events and
+     ;; close resources when connection is closed.
+     (go
+       (<! (wait-close session))
+       (close! channel))
+
+     channel)))
+
+(defn listen-presence
+  "Listen presence from the session."
+  ([session] (listen-messages session (chan)))
+  ([session channel]
+   (let [listener (reify PresenceListener
+                    (handle [this event]
+                      (let [presence (extern->clj (.getPresence event))
+                            rsp (put! channel presence)]
+                        (when-not (true? rsp)
+                          (.removeMessageListener session this)))))]
+     (.addMessageListener session listener)
+
+     ;; Wait session close events and
+     ;; close resources when connection is closed.
+     (go
+       (<! (wait-close session))
+       (close! channel))
+
      channel)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
