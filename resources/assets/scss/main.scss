@@ -3,6 +3,7 @@
 @import "dependencies/reset";
 @import "dependencies/fonts";
 @import "dependencies/colors";
+@import "dependencies/z-index";
 @import "sidebar";
 @import "chat";
 
@@ -48,4 +49,24 @@ strong {
   width: 100%;
   @include display(flex);
   @include justify-content(space-between);
+}
+
+.status {
+  @include flex-grow(0);
+  @include flex-shrink(0);
+  @include border-radius(3px);
+  display: inline-block;
+  border: solid 1px $status-border;
+  margin-right: 10px;
+  height: 10px;
+  width: 10px;
+  &.online {
+    background: $status-online;
+  }
+  &.busy {
+    background: $status-busy;
+  }
+  &.offline {
+    background: $status-offline;
+  }
 }

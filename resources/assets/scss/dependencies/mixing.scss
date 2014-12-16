@@ -4,3 +4,38 @@
   -ms-border-radius: $radius;
   border-radius: $radius;
 }
+
+@mixin fadeInOpacity ($name,$typeOfDisplay){
+  @keyframes ($name) {
+    0% {
+      display:none;
+      opacity: 0;
+    }
+
+    1% {
+      display: $typeOfDisplay ;
+      opacity: 0;
+    }
+
+    100% {
+      display: $typeOfDisplay ;
+      opacity: 1;
+    }
+  }
+  @-webkit-keyframes ($name) {
+    0% {
+      display:none;
+      opacity: 0;
+    }
+
+    1% {
+      display: $typeOfDisplay ;
+      opacity: 0;
+    }
+
+    100% {
+      display: $typeOfDisplay ;
+      opacity: 1;
+    }
+  }
+}
