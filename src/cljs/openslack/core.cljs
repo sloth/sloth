@@ -12,6 +12,7 @@
             [openslack.xmpp :as xmpp]
             [openslack.views :as views]
             [hodgepodge.core :refer [local-storage]]
+            [shodan.console :as console :include-macros true]
             [cats.core :as m]
             [cats.monad.either :as either]))
 
@@ -46,7 +47,6 @@
   (let [chats (xmpp/chats client)]
     (go-loop []
       (when-let [chat (<! chats)]
-        (.log js/console 2222 (pr-str chat))
         (swap! st/state st/add-chat chat)
         (recur)))))
 
@@ -81,23 +81,17 @@
       ;; Send initial
       (xmpp/send-presence client)
 
-      ;; Subscriptions
-      ;; (let [subs (xmpp/subscriptions client)]
-      ;;   (go-loop [s (<! subs)]
-      ;;     (recur (<! subs))))
-
       ;; Start watchers
       (start-roster-watcher client)
       (start-presence-watcher client)
       (start-chat-watcher client)
 
       ;; Join existing rooms
-      (println "Persisted rooms")
       (let [nickname (:local (:user state))]
         (doseq [room (:channels state)]
           ;; (let [roomjid (:bare (:bare room))]
           ;;   (<! (xmpp/join-room client roomjid nickname)))
-          (println room)))
+          (console/log 2222 (pr-str room))))
 
       ;; Force join room
       (<! (xmpp/join-room client "sloth@conference.niwi.be" (:local (:user @st/state))))
