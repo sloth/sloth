@@ -46,8 +46,9 @@
   ;; Chat updating process
   (let [chats (xmpp/chats client)]
     (go-loop []
-      (when-let [chat (<! chats)]
-        (swap! st/state st/add-chat chat)
+      (when-let [message (<! chats)]
+        (let [from (:from message)]
+          (st/insert-message from message))
         (recur)))))
 
 (defn- start-raw-packets-watcher
@@ -116,7 +117,7 @@
   []
   (add-watch st/state :persistence
              (fn [_ _ oldval newval]
-               (let [state (dissoc newval :client :user :roster :presence
+               (let [state (dissoc newval :client :user :roster :presence :chats :groupchats
                                    :features :page :conversations)]
                  (assoc! local-storage :state state)))))
 

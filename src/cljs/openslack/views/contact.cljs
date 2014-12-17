@@ -32,7 +32,7 @@
        (.preventDefault event)
        (chat/send-personal-message state user message)
        (om/set-state! owner :message "")
-       (set!  (.-value target) ""))
+       (set! (.-value target) ""))
 
      :else
      (om/set-state! owner :message message))))
@@ -71,7 +71,7 @@
     (init-state [_]
       (let [nickname (get-in state [:page :contact])
             user (st/get-contact state nickname)
-            author (:author event)
+            author (:local (:from event))
             loggeduser (:user state)
             classname (if (= author (:local loggeduser))
                         "message self"

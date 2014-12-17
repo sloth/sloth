@@ -18,17 +18,14 @@
   [state user message]
   (let [loggeduser (st/get-logged-user state)
         client (st/get-client state)
-        source (get-in loggeduser [:jid :bare])
-        recipient (get-in user [:jid :bare])]
-
+        source (:bare loggeduser)
+        recipient (:bare user)]
     (when client
       (xmpp/send-message client {:to recipient
                                  :type :chat
                                  :body message})
-
       (st/insert-message user {:to user
                                :from loggeduser
                                :type :chat
                                :timestamp (js/Date.)
                                :body message}))))
-

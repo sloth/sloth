@@ -29,7 +29,8 @@
              :bare "sloth@conference.niwi.be"}
        :unread 0}
    ]
-   :conversations {:chat {}, :groupchat {}}})
+   :chats {}
+   :groupchats {}})
 
 (defonce state (atom nil))
 
@@ -64,15 +65,25 @@
   [app-state chat]
   (let [type (:type chat)
         from (get-in chat [:from :bare])]
-    (update-in app-state [:conversations type from] (fnil conj []) chat)))
+    (update-in app-state [ type from] (fnil conj []) chat)))
+
+(defn- insert-group-message
+  [from message]
+  (let [recipient (get from :bare)]
+    (swap! state (fn [state]
+                   (update-in state [:groupchats recipient] (fnil conj []) message)))))
+
+(defn- insert-private-message
+  [from message]
+  (let [recipient (get from :bare)]
+    (swap! state (fn [state]
+                   (update-in state [:chats recipient] (fnil conj []) message)))))
 
 (defn insert-message
   [from message]
-  (swap! state
-         (fn [v]
-           (let [recipient (get-in from [:jid :bare])]
-             (update-in v [:conversations :chat recipient] (fnil conj []) message)))))
-
+  (condp = (:type message)
+    :chat (insert-private-message from message)
+    :groupchat (insert-group-message from message)))
 
 (defn join-room
   ;; TODO: rename
@@ -101,45 +112,24 @@
   (let [useraddress (get-in user [:jid :full])]
     (get-in state [:presence useraddress])))
 
-(defn room
-  ;; SHOULD BE DEPRECATED in favor of get-room
-  [app-state name]
-  (first (filter #(= name (get-in % [:jid :local]))
-                 (:channels app-state))))
-
 (defn get-room
   [state name]
   (let [channels (:channels state)
         filtered (filter (fn [ch] (= name (get-in ch [:jid :local]))) channels)]
     (first filtered)))
 
-(defn contact
-  ;; SHOULD BE DEPRECATED in favor of get-contact
-  [app-state name]
-  (first (filter #(= name (get-in % [:jid :local]))
-                 (:roster app-state))))
-
-
 (defn get-contact
-  [state name]
+  [state nickname]
   (let [contacts (:roster state)
-        filtered (filter (fn [c] (= name (get-in c [:jid :local]))) contacts)]
-    (first filtered)))
-
-(defn room-messages
-  [app-state room]
-  (get-in app-state [:conversations :groupchat (get-in room [:jid :bare])]))
+        filtered (filter (fn [c] (= nickname (get-in c [:jid :local]))) contacts)]
+    (:jid (first filtered))))
 
 (defn get-room-messages
   [state room]
   (let [roomaddress (get-in room [:jid :bare])]
-    (get-in state [:conversations :groupchat roomaddress])))
-
-(defn contact-messages
-  [app-state user]
-  (get-in app-state [:conversations :chat (get-in user [:jid :bare])]))
+    (get-in state [:groupchats roomaddress])))
 
 (defn get-contact-messages
   [state user]
-  (let [useraddress (get-in user [:jid :bare])]
-    (get-in state [:conversations :chat useraddress])))
+  (let [useraddress (:bare user)]
+    (get-in state [:chats useraddress])))
