@@ -17,8 +17,8 @@
     om/IRenderState
     (render-state [_ {:keys [message]}]
       (when-let [contact-name (get-in state [:page :contact])]
-        (let [user (st/contact contact-name)
-              presence (st/get-presence (:jid user))
+        (let [user (st/contact @st/state contact-name)
+              presence (st/get-presence @st/state (:jid user))
               send-msg-fn (partial chat/send-personal-message (get-in user [:jid :bare]))]
           (s/html
            [:section.client-main
@@ -31,6 +31,6 @@
             [:div.chat-zone
              [:div.chat-container
               [:div.messages-container
-               (om/build-all msg/contact-message (st/contact-messages user))]
+               (om/build-all msg/contact-message (st/contact-messages @st/state user))]
               (om/build (msg/message-input send-msg-fn) state)]
              [:div.chat-sidebar-holder [:div]]]]))))))

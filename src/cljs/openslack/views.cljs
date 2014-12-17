@@ -22,7 +22,7 @@
                      [:div.client-sidebar-holder (om/build sidebar state)]
                      home]
               :room (let [room-name (get-in state [:page :room])
-                          r (st/room room-name)]
+                          r (st/room @st/state room-name)]
                       [:section#app.client
                        [:div.client-sidebar-holder (om/build sidebar state)]
                        (om/build room state)])

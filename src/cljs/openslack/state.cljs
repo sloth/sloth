@@ -64,23 +64,23 @@
                                                                    :status (:status presence)}))
 
 (defn get-presence
-  [user]
-  (get-in @state [:presence (get-in user [:jid :bare])]))
+  [app-state user]
+  (get-in app-state [:presence (get-in user [:jid :bare])]))
 
 (defn room
-  [name]
+  [app-state name]
   (first (filter #(= name (get-in % [:jid :local]))
-                 (:channels @state))))
+                 (:channels app-state))))
 
 (defn contact
-  [name]
+  [app-state name]
   (first (filter #(= name (get-in % [:jid :local]))
-                 (:roster @state))))
+                 (:roster app-state))))
 
 (defn room-messages
-  [room]
-  (get-in @state [:conversations :groupchat (get-in room [:jid :bare])]))
+  [app-state room]
+  (get-in app-state [:conversations :groupchat (get-in room [:jid :bare])]))
 
 (defn contact-messages
-  [user]
-  (get-in @state [:conversations :chat (get-in user [:jid :bare])]))
+  [app-state user]
+  (get-in app-state [:conversations :chat (get-in user [:jid :bare])]))

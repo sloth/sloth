@@ -17,7 +17,7 @@
     om/IRenderState
     (render-state [_ {:keys [message]}]
       (when-let [room-name (get-in state [:page :room])]
-        (let [r (st/room room-name)
+        (let [r (st/room @st/state room-name)
               bare-jid (get-in r [:jid :bare])
               send-msg-fn (partial chat/send-group-message bare-jid)]
           (s/html
@@ -32,6 +32,6 @@
             [:div.chat-zone
              [:div.chat-container
               [:div.messages-container
-               (om/build-all msg/room-message (st/room-messages r))]
+               (om/build-all msg/room-message (st/room-messages @st/state r))]
              (om/build (msg/message-input send-msg-fn) state)]
              [:div.chat-sidebar-holder [:div]]]]))))))

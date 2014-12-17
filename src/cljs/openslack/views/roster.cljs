@@ -18,7 +18,7 @@
                  [:h3 "Contact List"]
                  [:ul
                   (for [contact (:roster state)
-                        :let [presence (st/get-presence contact)
+                        :let [presence (st/get-presence @st/state contact)
                               name (get-in contact [:jid :local])]]
                     [:li {:on-click #(navigate (contact-route {:name name}))}
                      (condp = (:availability presence)

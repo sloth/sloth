@@ -12,7 +12,7 @@
     (render [_]
       (when (:user state)
         (let [jid (:user state)
-              presence (st/get-presence {:jid jid})]
+              presence (st/get-presence @st/state {:jid jid})]
           (s/html
            [:div.active-user
                                         ; TODO: avatar
