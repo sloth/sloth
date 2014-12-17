@@ -75,7 +75,6 @@
 
 (defn message
   [state owner event]
-  (console/log 33333 (pr-str event))
   (reify
     om/IDisplayName
     (display-name [_] "room-message")
