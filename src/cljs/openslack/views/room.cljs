@@ -68,13 +68,15 @@
 
     om/IInitState
     (init-state [_]
+      ;; TODO: improve matching self messages
       (let [roomname (get-in state [:page :room])
             room (st/get-room state roomname)
-            author (:author event)
+            author (get-in event [:from :resource])
             loggeduser (:user state)
             classname (if (= author (:local loggeduser))
                         "message self"
                         "message")]
+
         {:room room
          :author (:resource (:from event))
          :body (enrich-text (:body event))
