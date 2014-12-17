@@ -19,8 +19,11 @@
                   (for [chan (:channels state)
                         :let [jid (:jid chan)
                               name (:local jid)
+                              is-current-chan? (and (= (get-in state [:page :state]) :room)
+                                                    (= (get-in state [:page :room])  name))
                               unread (:unread chan 0)
-                              attrs {:on-click #(navigate (room-route {:name name}))}]]
+                              attrs {:on-click #(navigate (room-route {:name name}))
+                                     :class-name (when is-current-chan? "highlight")}]]
                     (if (> unread 0)
                       [:li.unread attrs [:span "#"] name [:i unread]]
                       [:li attrs [:span "#"] name]

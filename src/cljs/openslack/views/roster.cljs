@@ -19,8 +19,12 @@
                  [:ul
                   (for [contact (:roster state)
                         :let [presence (st/get-presence @st/state contact)
-                              name (get-in contact [:jid :local])]]
-                    [:li {:on-click #(navigate (contact-route {:name name}))}
+                              name (get-in contact [:jid :local])
+                              is-current-contact? (and (= (get-in state [:page :state]) :contact)
+                                                       (= (get-in state [:page :contact]) name))
+                              attrs {:on-click #(navigate (contact-route {:name name}))
+                                     :class-name (when is-current-contact? "highlight")}]]
+                    [:li attrs
                      (condp = (:availability presence)
                        :available [:span.status.online]
                        :unavailable [:span.status.offline]
