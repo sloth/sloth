@@ -86,10 +86,10 @@
     (update-own-presence app-state presence)
     (assoc-in app-state [:presence (get-in presence [:from :bare])] {:availability (:type presence)
                                                                      :status (:status presence)})))
-
 (defn get-presence
-  [app-state user]
-  (get-in app-state [:presence (get-in user [:jid :full])]))
+  [state user]
+  (let [useraddress (get-in user [:jid :full])]
+    (get-in state [:presence useraddress])))
 
 (defn room
   ;; SHOULD BE DEPRECATED in favor of get-room
@@ -104,9 +104,17 @@
     (first filtered)))
 
 (defn contact
+  ;; SHOULD BE DEPRECATED in favor of get-contact
   [app-state name]
   (first (filter #(= name (get-in % [:jid :local]))
                  (:roster app-state))))
+
+
+(defn get-contact
+  [state name]
+  (let [contacts (:roster state)
+        filtered (filter (fn [c] (= name (get-in c [:jid :local]))) contacts)]
+    (first filtered)))
 
 (defn room-messages
   [app-state room]
@@ -120,3 +128,8 @@
 (defn contact-messages
   [app-state user]
   (get-in app-state [:conversations :chat (get-in user [:jid :bare])]))
+
+(defn get-contact-messages
+  [state user]
+  (let [useraddress (get-in user [:jid :bare])]
+    (get-in state [:conversations :chat useraddress])))

@@ -5,7 +5,6 @@
             [cuerdas.core :as str]
             [openslack.state :as st]
             [openslack.browser :as browser]
-            [openslack.views.messages :as msg]
             [openslack.text :refer [enrich-text]]
             [openslack.chat :as chat]))
 
@@ -114,11 +113,9 @@
             [:span (str hours ":" mins)]]
            [:p.content body]]])))))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Room
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defn room
   [state owner]
