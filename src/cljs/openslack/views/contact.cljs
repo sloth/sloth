@@ -3,6 +3,7 @@
             [sablono.core :as s :include-macros true]
             [shodan.console :as console :include-macros true]
             [cuerdas.core :as str]
+            [openslack.routing :refer [placeholder-avatar-route]]
             [openslack.state :as st]
             [openslack.views.text :refer [enrich-text]]
             [openslack.chat :as chat]))
@@ -95,7 +96,7 @@
                         "message")]
         {:author (:resource (:from event))
          :body (enrich-text (:body event))
-         :avatar (:avatar event)
+         :avatar (:avatar event placeholder-avatar-route)
          :classname classname}))
 
     om/IRenderState
