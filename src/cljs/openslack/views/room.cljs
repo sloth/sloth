@@ -20,6 +20,7 @@
     (chat/send-group-message roomaddress message)
     (om/set-state! owner :message "")))
 
+;; FIXME: two defns with the same name
 (defn- ready-to-send?
   [event message]
   (if (= (.-keyCode event) 13)

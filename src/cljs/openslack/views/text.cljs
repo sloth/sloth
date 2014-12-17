@@ -28,13 +28,23 @@
     (filter (complement empty?) @result)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; String manipulation (maybe for cuerdas?)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn unsurround
+  [s]
+  (.substring s 1 (dec (.-length s))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Images
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def img-regex #"https?://.*\.(?:jpe?g|gif|png)")
-(def img-converter (fn [e]
-                     [:img {:src e
-                            :class-name "message-image"}]))
+(defn img-converter
+  [url]
+  [:img {:src url
+         :class-name "message-image"}])
+
 (register-enricher! img-regex img-converter)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -924,17 +934,14 @@
     "zero"
     "zzz"})
 
-(defn unsurround
-  [s]
-  (.substring s 1 (dec (.-length s))))
-
 (def emoji-regex #"\:[^\\s:]+\:")
-(def emoji-converter (fn [e]
-                       (let [emoji (unsurround e)]
-                         (if (valid-emojis emoji)
-                           [:img {:src (emoji-route emoji)
-                                  :class-name "emoji"}]
-                           e))))
+(defn emoji-converter
+  [e]
+  (let [emoji (unsurround e)]
+    (if (valid-emojis emoji)
+      [:img {:src (emoji-route emoji)
+             :class-name "emoji"}]
+      e)))
 
 (register-enricher! emoji-regex emoji-converter)
 
@@ -942,20 +949,24 @@
 ;; Markup
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
 (def bold-regex #"\*[^*\n]+\*")
-(def bold-converter (fn [s]
-                      [:strong (unsurround s)]))
+(defn bold-converter
+  [s]
+  [:strong (unsurround s)])
 
 (register-enricher! bold-regex bold-converter)
 
 (def cursive-regex #"/[^/\n]+/")
-(def cursive-converter (fn [s]
-                         [:em (unsurround s)]))
+(defn cursive-converter
+  [s]
+  [:em (unsurround s)])
 
 (register-enricher! cursive-regex cursive-converter)
 
 (def cross-out-regex #"-[^/\n]+-")
-(def cross-out-converter (fn [s]
-                         [:i.cross-out (unsurround s)]))
+(defn cross-out-converter
+  [s]
+  [:i.cross-out (unsurround s)])
 
 (register-enricher! cross-out-regex cross-out-converter)
