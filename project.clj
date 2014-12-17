@@ -39,6 +39,7 @@
                  [sablono "0.2.22" :exclusions [com.facebook/react]]
                  [om "0.8.0-beta3"]
                  [hodgepodge "0.1.0"]
+                 [cuerdas "0.1.0-SNAPSHOT"]
 
                  ;; Shared dependencies
                  [hiccup-bridge "1.0.1"]

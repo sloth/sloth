@@ -1,7 +1,8 @@
 (ns openslack.views.messages
   (:require [om.core :as om :include-macros true]
             [sablono.core :as s :include-macros true]
-            [openslack.browser :as browser]))
+            [openslack.browser :as browser]
+            [openslack.text :refer [enrich-text]]))
 
 (defn message-input
   [send-message-fn]
@@ -37,6 +38,10 @@
     om/IDisplayName
     (display-name [_] "Message")
 
+    om/IDidMount
+    (did-mount [this]
+      (browser/scroll-to-bottom ".messages-container"))
+
     om/IRender
     (render [_]
       (s/html
@@ -56,17 +61,17 @@
                                                  (str "0" mins)
                                                  mins)]
                                       (str hours ":" mins))]]
-         [:p.content (:body state)]]]))
-
-    om/IDidMount
-    (did-mount [this]
-      (browser/scroll-to-bottom ".messages-container"))))
+         [:p.content (enrich-text  (:body state))]]]))))
 
 (defn room-message
   [state owner]
   (reify
     om/IDisplayName
     (display-name [_] "Message")
+
+    om/IDidMount
+    (did-mount [this]
+      (browser/scroll-to-bottom ".messages-container"))
 
     om/IRender
     (render [_]
@@ -87,8 +92,4 @@
                                                  (str "0" mins)
                                                  mins)]
                                       (str hours ":" mins))]]
-         [:p.content (:body state)]]]))
-
-    om/IDidMount
-    (did-mount [this]
-      (browser/scroll-to-bottom ".messages-container"))))
+         [:p.content (enrich-text (:body state))]]]))))
