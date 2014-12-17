@@ -92,9 +92,16 @@
   (get-in app-state [:presence (get-in user [:jid :full])]))
 
 (defn room
+  ;; SHOULD BE DEPRECATED in favor of get-room
   [app-state name]
   (first (filter #(= name (get-in % [:jid :local]))
                  (:channels app-state))))
+
+(defn get-room
+  [state name]
+  (let [channels (:channels state)
+        filtered (filter (fn [ch] (= name (get-in ch [:jid :local]))) channels)]
+    (first filtered)))
 
 (defn contact
   [app-state name]
@@ -104,6 +111,11 @@
 (defn room-messages
   [app-state room]
   (get-in app-state [:conversations :groupchat (get-in room [:jid :bare])]))
+
+(defn get-room-messages
+  [state room]
+  (let [roomaddress (get-in room [:jid :bare])]
+    (get-in state [:conversations :groupchat roomaddress])))
 
 (defn contact-messages
   [app-state user]

@@ -64,7 +64,6 @@
   (go
     (when-let [authdata (:auth @st/state)]
       ;; TODO: handle error
-      (.log js/console 99999 (pr-str authdata))
       (let [res (<! (auth/authenticate (:username authdata)
                                        (:password authdata)))]
         (cond
@@ -87,11 +86,11 @@
       (start-chat-watcher client)
 
       ;; Join existing rooms
-      (let [nickname (:local (:user state))]
-        (doseq [room (:channels state)]
-          ;; (let [roomjid (:bare (:bare room))]
-          ;;   (<! (xmpp/join-room client roomjid nickname)))
-          (console/log 2222 (pr-str room))))
+      ;; (let [nickname (:local (:user state))]
+      ;;   (doseq [room (:channels state)]
+      ;;     ;; (let [roomjid (:bare (:bare room))]
+      ;;     ;;   (<! (xmpp/join-room client roomjid nickname)))
+      ;;     (console/log 2222 (pr-str room))))
 
       ;; Force join room
       (<! (xmpp/join-room client "sloth@conference.niwi.be" (:local (:user @st/state))))

@@ -1,9 +1,78 @@
 (ns openslack.views.room
   (:require [om.core :as om :include-macros true]
             [sablono.core :as s :include-macros true]
+            [shodan.console :as console :include-macros true]
+            [cuerdas.core :as str]
             [openslack.state :as st]
             [openslack.views.messages :as msg]
             [openslack.chat :as chat]))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Message input
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defn send-message
+  [owner room message]
+  (let [roomaddress (get-in room [:jid :bare])]
+    (chat/send-group-message roomaddress message)
+    (om/set-state! owner :message "")))
+
+(defn- ready-to-send?
+  [event message]
+  (if (= (.-keyCode event) 13)
+    (if (or (.-ctrlKey event) (.-shiftKey event))
+      false
+      true)
+    false))
+
+(defn- ready-to-send?
+  [event message]
+  (and (= (.-keyCode event) 13)
+       (not (or (.-ctrlKey event) (.-shiftKey event)))
+       (not (str/empty? message))))
+
+(defn- onkeyup
+  [state owner room event]
+  (let [target (.-target event)
+        message (.-value target)]
+    (cond
+     (str/empty? message)
+     (.preventDefault event)
+
+     (ready-to-send? event message)
+     (do
+       (.preventDefault event)
+       (send-message owner room message)
+       (set!  (.-value target) ""))
+
+     :else
+     (om/set-state! owner :message message))))
+
+(defn message-input
+  [state owner]
+  (reify
+    om/IDisplayName
+    (display-name [_] "room-input")
+
+    om/IInitState
+    (init-state [_] {:message ""})
+
+    om/IRenderState
+    (render-state [_ {:keys [message]}]
+      (let [roomname (get-in state [:page :room])
+            room (st/get-room state roomname)
+            onkeyup (partial onkeyup state owner room)]
+        (s/html
+         [:div.write-message
+          [:textarea {:auto-focus true
+                      :on-key-up onkeyup}]])))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Room
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn room
   [state owner]
@@ -11,19 +80,16 @@
     om/IDisplayName
     (display-name [_] "Room")
 
-    om/IInitState
-    (init-state [_] {:message ""})
-
     om/IRenderState
     (render-state [_ {:keys [message]}]
-      (when-let [room-name (get-in state [:page :room])]
-        (let [r (st/room @st/state room-name)
-              bare-jid (get-in r [:jid :bare])
-              send-msg-fn (partial chat/send-group-message bare-jid)]
+      (let [roomname (get-in state [:page :room])
+            room (st/get-room state roomname)
+            messages (st/get-room-messages state room)]
+        (when room
           (s/html
            [:section.client-main
             [:header
-             [:h1 (str "#" (get-in r [:jid :local]))]
+             [:h1 (str "#" (get-in room [:jid :local]))]
              [:h2
               "Le topic del dia: Los "
               [:strong "Sloth"]
@@ -32,6 +98,7 @@
             [:div.chat-zone
              [:div.chat-container
               [:div.messages-container
-               (om/build-all msg/room-message (st/room-messages @st/state r))]
-             (om/build (msg/message-input send-msg-fn) state)]
+               (om/build-all msg/room-message (st/room-messages @st/state room))]
+
+              (om/build message-input state)]
              [:div.chat-sidebar-holder [:div]]]]))))))
