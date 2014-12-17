@@ -2,6 +2,7 @@
   (:require [om.core :as om :include-macros true]
             [sablono.core :as s :include-macros true]
             [openslack.browser :as browser]
+            [openslack.state :as st]
             [openslack.text :refer [enrich-text]]))
 
 (defn message-input

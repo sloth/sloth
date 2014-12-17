@@ -42,6 +42,10 @@
   ([st]
    (not (nil? (:auth st)))))
 
+(defn logged-in-user
+  [app-state]
+  (:user app-state))
+
 (defn initialize-session
   [{:keys [user client auth]}]
   (swap! state (fn [v]
