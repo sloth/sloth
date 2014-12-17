@@ -122,9 +122,4 @@
     @include flex-grow(1);
     resize: none;
   }
-  button {
-    @include flex-grow(0);
-    @include flex-shrink(0);
-    width: 60px;
-  }
 }

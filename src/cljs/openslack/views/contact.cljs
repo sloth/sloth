@@ -18,7 +18,8 @@
     (render-state [_ {:keys [message]}]
       (when-let [contact-name (get-in state [:page :contact])]
         (let [user (st/contact contact-name)
-              presence (st/get-presence (:jid user))]
+              presence (st/get-presence (:jid user))
+              send-msg-fn (partial chat/send-personal-message (get-in user [:jid :bare]))]
           (s/html
            [:section.client-main
             [:header
@@ -31,16 +32,5 @@
              [:div.chat-container
               [:div.messages-container
                (om/build-all msg/contact-message (st/contact-messages user))]
-              [:div.write-message
-               [:textarea {:on-key-up (fn [e]
-                                        (let [value (-> e
-                                                        (.-target)
-                                                        (.-value))]
-                                          (om/set-state! owner :message value)))}]
-               [:button {:on-click (fn [e]
-                                     (.preventDefault e)
-                                     (when message
-                                       (chat/send-personal-message (get-in user [:jid :bare]) message)
-                                       (om/set-state! owner :message ""))
-                                     )} "Send"]]]
+              (om/build (msg/message-input send-msg-fn) state)]
              [:div.chat-sidebar-holder [:div]]]]))))))
