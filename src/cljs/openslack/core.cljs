@@ -40,17 +40,27 @@
       (swap! st/state st/update-presence presence)
       (recur (<! presence-chan)))))
 
+(defn- start-chat-watcher
+  [client]
+  ;; Chat updating process
+  (let [chats (xmpp/chats client)]
+    (go-loop []
+      (when-let [chat (<! chats)]
+        (.log js/console 2222 (pr-str chat))
+        (swap! st/state st/add-chat chat)
+        (recur)))))
+
 (defn- start-raw-packets-watcher
   [client]
   ;; Raw events (debug)
   (.on client "raw:*" (fn [ev payload]
-                        (.log js/console ev payload))))
+                               (.log js/console "******************************")
+                               (.log js/console ev))))
 
 (def bootstrap (atom false))
 
 (defn bootstrap-session
   []
-  (println "BOOOTSTRAP")
   (go
     (when-let [authdata (:auth @st/state)]
       ;; TODO: handle error
@@ -71,14 +81,15 @@
       ;; Send initial
       (xmpp/send-presence client)
 
-      ;; Start watchers
-      (start-roster-watcher client)
-      (start-presence-watcher client)
-
       ;; Subscriptions
       ;; (let [subs (xmpp/subscriptions client)]
       ;;   (go-loop [s (<! subs)]
       ;;     (recur (<! subs))))
+
+      ;; Start watchers
+      (start-roster-watcher client)
+      (start-presence-watcher client)
+      (start-chat-watcher client)
 
       ;; Join existing rooms
       (println "Persisted rooms")
@@ -90,12 +101,7 @@
 
       ;; Force join room
       (<! (xmpp/join-room client "sloth@conference.niwi.be" (:local (:user @st/state))))
-
-      ;; Chat updating process
-      (let [chats (xmpp/chats client)]
-        (go-loop [chat (<! chats)]
-          (swap! st/state st/add-chat chat)
-          (recur (<! chats)))))))
+      )))
 
 (defn mount-root-component
   []
@@ -118,7 +124,7 @@
   (add-watch st/state :persistence
              (fn [_ _ oldval newval]
                (let [state (dissoc newval :client :user :roster :presence
-                                   :features :page)]
+                                   :features :page :conversations)]
                  (assoc! local-storage :state state)))))
 
 (defn main

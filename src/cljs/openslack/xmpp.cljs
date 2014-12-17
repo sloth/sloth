@@ -1,6 +1,6 @@
 (ns openslack.xmpp
   (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [cljs.core.async :as async :refer [<! timeout]]
+  (:require [cljs.core.async :as async :refer [<! timeout put!]]
             [openslack.config :as config]
             [cats.core :as m :include-macros true]
             [cats.monad.either :as either]))
@@ -260,8 +260,8 @@
 
 (defn chats [client]
   (let [c (async/chan 10 (map raw-chat->chat))]
-    (.on client "chat" (partial async/put! c))
-    (.on client "groupchat" (partial async/put! c))
+    (.on client "chat" (fn [e] (put! c e)))
+    (.on client "groupchat" (fn [e] (put! c e)))
     c))
 
 (defn raw-chat-state->chat-state [rchatstate]
