@@ -19,7 +19,7 @@
     h2 {
       @include flex-shrink(0);
       @include flex-grow(2);
-      font-family: QS;
+      font-family: Lato;
       padding-left: 1em;
       overflow: hidden;
     }
@@ -69,8 +69,29 @@
   padding-left: 0.5em;
   margin-left: 0.5em;
   margin-right: 0.5em;
+  &.mention {
+    background: $mention-user;
+  }
+  &.self {
+    opacity: 0.6;
+    &:hover {
+      opacity: 1;
+    }
+  }
   &.highlighted {
-    background: darken($main-background, 12%);
+    background: $chat-highlighted-bg;
+    opacity: 1;
+    &:hover {
+      background: $chat-highlighted-bg;
+    }
+    .mention-user {
+      background: darken($chat-highlighted-bg,20%);
+    }
+  }
+  .mention-user {
+    background: darken($mention-user,20%);
+    padding: 0 4px;
+
   }
   .message-avatar {
     @include flex-grow(0);
@@ -87,18 +108,18 @@
     strong {
       font-family: MNT;
       padding-right: 7px;
-      font-size: 18px;
+      font-size: 13px;
     }
     span {
-      font-family: QS;
-      font-size: 12px;
+      font-family: Lato;
+      font-size: 10px;
       opacity: 0.7;
       padding-right: 5px;
     }
   }
   .content {
-    font-size: 15px;
-    padding: .25rem 0 .1rem 0;
+    font-size: 13px;
+    padding: 0 0 .1rem 0;
     line-height: 22px;
     strong {
       font-weight: bold;

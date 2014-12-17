@@ -26,6 +26,7 @@ menu, nav, output, ruby, section, summary,
 time, mark, audio, video {
   font-family: inherit;
   -webkit-font-smoothing: antialiased;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.10);
 }
 
 a {
@@ -37,7 +38,8 @@ a {
 }
 h1, h2, h3, h4, h5, h6 {
   -webkit-font-smoothing: antialiased;
-  font-family: MNT;
+  font-family: Lato;
+  font-weight: bold;
 }
 
 strong {
@@ -59,16 +61,19 @@ strong {
   @include border-radius(3px);
   display: inline-block;
   border: solid 1px $status-border;
-  margin-right: 10px;
+  margin-right: 5px;
   height: 10px;
   width: 10px;
   &.online {
     background: $status-online;
+    border-color: darken($status-online,30%)
   }
   &.busy {
     background: $status-busy;
+    border-color: darken($status-busy,30%)
   }
   &.offline {
     background: $status-offline;
+    border-color: darken($status-offline,30%)
   }
 }

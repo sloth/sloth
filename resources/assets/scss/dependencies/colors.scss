@@ -1,24 +1,29 @@
-$sidebar-background: #342C22;
+$sidebar-background: #0D2949;
 $sidebar-text-unread-message: #fff;
 $sidebar-text-hover: #fff;
-$sidebar-text: #ab9ba9;
+$sidebar-text: #0255B2;
 $sidebar-text-invited: #FF7B57;
-$sidebar-channel: #999;
+$sidebar-channel: darken(#999,10%);
+$sidebar-channel-inactive: #999;
 $sidebar-unread-messages: #fff;
-$sidebar-unread-messages-bg: #F41276;
-$sidebar-close-channel-bg: #F41276;
+$sidebar-unread-messages-bg: #ff1493;
+$sidebar-highlighted-background: #037AFF;
+$sidebar-close-channel-bg: #ff1493;
 
 $sidebar-invited-bg: #FF2624;
 $sidebar-invited: #fff;
 
-$links: #ECD078;
-$links-hover: #D95B43;
-$sidebar-links: #ECD078;
-$sidebar-links-hover: #D95B43;
+$links: #c641b7;
+$links-hover: #d87dce;
+$sidebar-links: #FFC45C;
+$sidebar-links-hover: #FFD791;
 
 $status-border: #A68D6C ;
-$status-online: #85FFBF;
-$status-busy: #FFB224 ;
-$status-offline: #AEACB5;
+$status-online: #00FF0A;
+$status-busy: #FF8E00 ;
+$status-offline: #ADA499;
 
-$main-background: #FFFFFE;
+$main-background: #FFFFFF;
+$chat-highlighted-bg: #A8E8FF;
+
+$mention-user: #FFF2E5;

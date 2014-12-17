@@ -6,6 +6,7 @@
 }
 
 .client-sidebar {
+  box-shadow: 2px 0px 3px 0px rgba(50, 50, 50, 0.75);
   position: fixed;
   @include display(flex);
   @include flex-direction(column);
@@ -13,7 +14,7 @@
   width: 240px;
   hr {
     border: 0;
-    padding: 0.8em 0;
+    padding: 0.1em 0;
   }
   a {
     color: $sidebar-links;
@@ -22,7 +23,14 @@
       color: $sidebar-links-hover;
     }
   }
-
+  p {
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    text-transform: uppercase;
+    font-size: 13px;
+  }
   .active-user {
     @include flex-grow(0);
     @include flex-shrink(0);
@@ -72,16 +80,13 @@
     overflow: auto;
   }
   .logo {
-    padding: 1em 1em 3em 1em;
+    padding: 2em 1em 1em 1em;
   }
   p, span, strong, em, i, li {
-    font-family: QS;
+    font-family: Lato;
   }
   h3, h2, span, li {
     color: $sidebar-text;
-    &:hover {
-      color: $sidebar-text-hover;
-    }
   }
   .status-text {
     color: #fff;
@@ -95,35 +100,38 @@
 .sidebar-list {
   h3 {
     cursor: pointer;
-    padding: 0.5em;
-    &.nohover {
-      &:hover {
-        color: #ab9ba9;
-      }
-    }
+    padding: 0.4em;
   }
   ul {
     margin-right: 15px;
   }
   li {
     @include transition(all 0.2s ease-in-out);
-    color: $sidebar-text;
+    color: $sidebar-channel-inactive;
     cursor: pointer;
+    font-size: 15px;
+    margin-bottom: 2px;
     padding-left: 0.5em;
     padding-right: 0.5em;
-    padding-top: 0.4em;
-    padding-bottom: 0.4em;
+    padding-top: 0.2em;
+    padding-bottom: 0.2em;
     position: relative;
     span {
       color: $sidebar-channel;
-      margin-right: 0.3em;
+      margin-right: 0.2em;
     }
     .read-status {
+      @include box-sizing (border-box);
       display: none;
+      background: #000;
       font-size: 12px;
       margin-top: 5px;
       padding: 0.4em;
+      left: 0;
       z-index: $status-tooltip;
+      position: absolute;
+      top: 17px;
+      width: 100%;
       -webkit-animation-duration: 0.4s;
       -webkit-animation-name: fadeInOpa;
     }
@@ -147,6 +155,25 @@
       display: inline-block;
     }
   }
+  .highlighted {
+    @include border-radius(0 5px 5px 0);
+    background: $sidebar-highlighted-background;
+    color: #fff;
+    opacity: 1;
+    span {
+      color: #fff;
+    }
+    .close-channel {
+      background: #fff;
+      color: $sidebar-highlighted-background;
+    }
+    &:hover {
+      background: $sidebar-highlighted-background;
+    }
+  }
+  .add {
+    font-size: 12px;
+  }
   .invited {
     color: $sidebar-text-unread-message;
     span {
@@ -160,33 +187,31 @@
   }
   i {
     @include border-radius(5px);
-    background: $sidebar-unread-messages-bg;
-    border-bottom: darken($sidebar-unread-messages-bg,40%) solid 2px;
+    background: $sidebar-close-channel-bg;
     color: $sidebar-unread-messages;
-    font-family: QS;
+    font-family: Lato;
     font-weight: bold;
+    font-size: 11px;
     display: none;
-    letter-spacing: 0.9px;
     position: absolute;
-    padding: 2px 0 ;
+    line-height: 14px;
+    letter-spacing: -0.9px;
     right: 0.5em;
-    top: 0.3em;
     text-align: center;
-    height: 18px;
-    width: 20px;
+    top: 3px;
+    height: 14px;
+    width: 14px;
     z-index: $unreaded-messages-popup;
     &.close-channel {
       @include border-radius(30px);
-      border-bottom: 0;
       background: $sidebar-close-channel-bg;
       display: none;
-      font-family: MNT;
-      font-size: 14px;
+      font-family: Lato;
+      font-size: 10px;
       padding: 0;
-      line-height: 21px;
-      top: 5px;
-      height: 20px;
-      width: 20px;
+      top: 3px;
+      height: 14px;
+      width: 14px;
       text-transform: uppercase;
       right: 0.55em;
       z-index: $delete-channel;
