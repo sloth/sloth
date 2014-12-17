@@ -1,6 +1,7 @@
 (ns openslack.views.messages
   (:require [om.core :as om :include-macros true]
-            [sablono.core :as s :include-macros true]))
+            [sablono.core :as s :include-macros true]
+            [openslack.browser :as browser]))
 
 (defn message-input
   [send-message-fn]
@@ -55,7 +56,11 @@
                                                  (str "0" mins)
                                                  mins)]
                                       (str hours ":" mins))]]
-         [:p.content (:body state)]]]))))
+         [:p.content (:body state)]]]))
+
+    om/IDidMount
+    (did-mount [this]
+      (browser/scroll-to-bottom ".messages-container"))))
 
 (defn room-message
   [state owner]
@@ -82,4 +87,8 @@
                                                  (str "0" mins)
                                                  mins)]
                                       (str hours ":" mins))]]
-         [:p.content (:body state)]]]))))
+         [:p.content (:body state)]]]))
+
+    om/IDidMount
+    (did-mount [this]
+      (browser/scroll-to-bottom ".messages-container"))))
