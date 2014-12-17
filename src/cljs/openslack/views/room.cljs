@@ -123,6 +123,11 @@
     om/IDisplayName
     (display-name [_] "Room")
 
+    om/IDidMount
+    (did-mount [_]
+      ;; TODO: scroll to last read?
+      (browser/scroll-to-bottom ".messages-container"))
+
     om/IDidUpdate
     (did-update [this _ _]
       (browser/scroll-to-bottom ".messages-container"))
