@@ -1,6 +1,13 @@
 (ns openslack.chat
-  (:require [openslack.xmpp :as xmpp]
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
+  (:require [cljs.core.async :refer [<!]]
+            [openslack.xmpp :as xmpp]
             [openslack.state :as st]))
+
+;; (defn join-room
+;;   [client roomaddress alias nick]
+;;   (go
+;;     (let [room (<! (xmpp/join-room roomaddress nickname))]
 
 (defn send-group-message
   [recipient body]

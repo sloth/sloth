@@ -4,24 +4,24 @@
 (defn make-initial-state []
   {:page {:state :login}
    :client nil
+   :user nil
    :features []
    :roster []
    :presence {}
-   :user nil
-   :subscriptions [
-    {:type :room
-     :from {:jid "niwi@niwi.be"
-            :local "niwi"}
-     :room {:name "clojure"}}
-    {:type :room
-     :from {:jid "miguel@niwi.be"
-            :local "miguel"}
-     :room {:name "emacs"}}
-    {:type :room
-     :from {:jid "ramiro@niwi.be"
-            :local "ramiro"}
-     :room {:name "anime"}}
-   ]
+   :subscriptions []
+   ;; :subscriptions [{:type :room
+   ;;                  :from {:jid "niwi@niwi.be"
+   ;;                         :local "niwi"}
+   ;;                  :room {:name "clojure"}}
+   ;;                 {:type :room
+   ;;                  :from {:jid "miguel@niwi.be"
+   ;;                         :local "miguel"}
+   ;;                  :room {:name "emacs"}}
+   ;;                 {:type :room
+   ;;                  :from {:jid "ramiro@niwi.be"
+   ;;                         :local "ramiro"}
+   ;;                  :room {:name "anime"}}]
+   ;; :channels []
    :channels [
       {:jid {:local "sloth"
              :bare "sloth@conference.niwi.be"}
@@ -29,18 +29,26 @@
    ]
    :conversations {:chat {}, :groupchat {}}})
 
-(defonce state (atom (make-initial-state)))
+(defonce state (atom nil))
+
+(defn set-initial-state
+  ([] (reset! state (make-initial-state)))
+  ([s]
+   (let [initial (make-initial-state)]
+     (reset! state (merge initial s)))))
 
 (defn logged-in?
-  ([]
-     (logged-in? @state))
+  ([] (logged-in? @state))
   ([st]
-     (not (nil? (:user st)))))
+   (not (nil? (:auth st)))))
 
 (defn initialize-session
-  [{:keys [user client]}]
-  (swap! state assoc :client client)
-  (swap! state assoc :user user))
+  [{:keys [user client auth]}]
+  (swap! state (fn [v]
+                 (-> v
+                     (assoc :client client)
+                     (assoc :user user)
+                     (assoc :auth auth)))))
 
 (defn add-chat
   [app-state chat]
@@ -53,6 +61,7 @@
   (update-in app-state [:conversations :chat (:to chat)] (fnil conj []) chat))
 
 (defn join-room
+  ;; TODO: rename
   [app-state room]
   (let [type :groupchat
         from (-> room :from :bare)]

@@ -123,12 +123,13 @@
           client (-> config
                      (assoc :jid username :password password)
                      (create-client))
-          muser (<! (start-session client))]
+          muser  (<! (start-session client))]
       (m/>>= muser
              (fn [user]
                (m/return {:user user
-                          :client client}))))))
-
+                          :client client
+                          :auth {:username username
+                                 :password password}}))))))
 ;; Roster
 
 (defn raw-roster->roster [rroster]

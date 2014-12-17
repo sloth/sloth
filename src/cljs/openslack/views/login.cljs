@@ -3,6 +3,7 @@
   (:require [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
             [cljs.core.async :refer [<!]]
+            [openslack.auth :as auth]
             [openslack.state :as st]
             [openslack.xmpp :as xmpp]
             [openslack.routing :as routing]
@@ -12,18 +13,14 @@
 (defn do-login
   [owner {:keys [username password]}]
   (go
-    (let [msession (<! (xmpp/authenticate username password))]
+    (let [msession (<! (auth/authenticate username password))]
       (cond
        (either/right? msession)
-       (do
-         (st/initialize-session (either/from-either msession))
-         (routing/navigate ""))
-
+       (routing/navigate "")
 
        (either/left? msession)
        (let [state (om/get-state owner)]
-          (om/set-state! owner (assoc state :error "Wrong credentials!"))))
-       )))
+         (om/set-state! owner (assoc state :error "Wrong credentials!")))))))
 
 (defn login
   [_ owner]
