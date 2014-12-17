@@ -21,7 +21,7 @@
   (when-let [client (:client @st/state)]
     (let [message {:to recipient
                    :type :chat
-                   :from (get-in @st/state [:user :full])
+                   :from (st/logged-in-user @st/state)
                    :body body}]
     ; TODO: handle duplicate msg errors
     (xmpp/send-message client message)

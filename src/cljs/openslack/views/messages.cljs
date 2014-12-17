@@ -33,64 +33,45 @@
                                  (send-message-fn message)
                                  (om/set-state! owner :message "")))))}]])))))
 
-(defn contact-message
-  [state owner]
-  (reify
-    om/IDisplayName
-    (display-name [_] "Message")
+(defn message
+  [state->author]
+  (fn
+    [state owner]
+    (reify
+      om/IDisplayName
+      (display-name [_] "Message")
 
-    om/IDidMount
-    (did-mount [this]
-      (browser/scroll-to-bottom ".messages-container"))
+      om/IDidMount
+      (did-mount [this]
+        (browser/scroll-to-bottom ".messages-container"))
 
-    om/IRender
-    (render [_]
-      (s/html
-       [:div.message
-        [:div.message-avatar
-         [:img
-          {:height "35",
-           :width "35",
-           :alt "#user",
-           :src (:avatar state)}]]
-        [:div.message-content
-         [:div.message-title [:strong (get-in state [:from :local])]
-                             [:span (let [stamp (:timestamp state)
-                                          hours (.getHours stamp)
-                                          mins (.getMinutes stamp)
-                                          mins (if (< mins 10)
-                                                 (str "0" mins)
-                                                 mins)]
-                                      (str hours ":" mins))]]
-         [:p.content (enrich-text (:body state))]]]))))
+      om/IRender
+      (render [_]
+        (let [author (state->author state)
+              logged-in-user (st/logged-in-user @st/state)
+              is-my-message? (= author (:local logged-in-user))
+              classes (if is-my-message?
+                        ["message" "self"]
+                        ["message"])
+              class-name (apply str (interpose " " classes))]
+          (s/html
+           [:div {:class-name class-name}
+            [:div.message-avatar
+             [:img
+              {:height "35",
+               :width "35",
+               :alt "#user",
+               :src (:avatar state)}]]
+            [:div.message-content
+             [:div.message-title [:strong author]
+              [:span (let [stamp (:timestamp state)
+                           hours (.getHours stamp)
+                           mins (.getMinutes stamp)
+                           mins (if (< mins 10)
+                                  (str "0" mins)
+                                  mins)]
+                       (str hours ":" mins))]]
+             [:p.content (enrich-text (:body state))]]]))))))
 
-(defn room-message
-  [state owner]
-  (reify
-    om/IDisplayName
-    (display-name [_] "Message")
-
-    om/IDidMount
-    (did-mount [this]
-      (browser/scroll-to-bottom ".messages-container"))
-
-    om/IRender
-    (render [_]
-      (s/html
-       [:div.message
-        [:div.message-avatar
-         [:img
-          {:height "35",
-           :width "35",
-           :alt "#user",
-           :src (:avatar state)}]]
-        [:div.message-content
-         [:div.message-title [:strong (get-in state [:from :resource])]
-                             [:span (let [stamp (:timestamp state)
-                                          hours (.getHours stamp)
-                                          mins (.getMinutes stamp)
-                                          mins (if (< mins 10)
-                                                 (str "0" mins)
-                                                 mins)]
-                                      (str hours ":" mins))]]
-         [:p.content (enrich-text (:body state))]]]))))
+(def room-message (message #(get-in % [:from :resource])))
+(def contact-message (message #(get-in % [:from :local])))
