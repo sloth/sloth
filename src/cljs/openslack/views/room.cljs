@@ -5,8 +5,8 @@
             [cuerdas.core :as str]
             [openslack.state :as st]
             [openslack.views.messages :as msg]
+            [openslack.text :refer [enrich-text]]
             [openslack.chat :as chat]))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Message input
@@ -69,10 +69,56 @@
           [:textarea {:auto-focus true
                       :on-key-up onkeyup}]])))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Messages
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn message
+  [state owner event]
+  (console/log 33333 (pr-str event))
+  (reify
+    om/IDisplayName
+    (display-name [_] "room-message")
+
+    om/IInitState
+    (init-state [_]
+      (let [roomname (get-in state [:page :room])
+            room (st/get-room state roomname)
+            author (:author event)
+            loggeduser (:user state)
+            classname (if (= author (:local loggeduser))
+                        "message self"
+                        "message")]
+        {:room room
+         :author (:resource (:from event))
+         :body (enrich-text (:body event))
+         :avatar (:avatar event)
+         :classname classname}))
+
+    om/IRenderState
+    (render-state [_ {:keys [room author classname avatar body]}]
+      (let [stamp (:timestamp event)
+            hours (.getHours stamp)
+            mins (.getMinutes stamp)
+            mins (if (< mins 10) (str "0" mins) mins)]
+        (s/html
+         [:div {:class-name classname}
+          [:div.message-avatar
+           [:img {:height "35"
+                  :width "35"
+                  :alt "#user"
+                  :src avatar}]]
+          [:div.message-content
+           [:div.message-title
+            [:strong author]
+            [:span (str hours ":" mins)]]
+           [:p.content body]]])))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Room
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 (defn room
   [state owner]
@@ -80,8 +126,8 @@
     om/IDisplayName
     (display-name [_] "Room")
 
-    om/IRenderState
-    (render-state [_ {:keys [message]}]
+    om/IRender
+    (render [_]
       (let [roomname (get-in state [:page :room])
             room (st/get-room state roomname)
             messages (st/get-room-messages state room)]
@@ -98,7 +144,8 @@
             [:div.chat-zone
              [:div.chat-container
               [:div.messages-container
-               (om/build-all msg/room-message (st/room-messages @st/state room))]
-
+               (for [msg messages]
+                 (om/build message state {:opts msg
+                                          :react-key (:id msg)}))]
               (om/build message-input state)]
              [:div.chat-sidebar-holder [:div]]]]))))))

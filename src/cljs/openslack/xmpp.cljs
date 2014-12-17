@@ -1,6 +1,7 @@
 (ns openslack.xmpp
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :as async :refer [<! timeout put!]]
+            [shodan.console :as console :include-macros true]
             [openslack.config :as config]
             [cats.core :as m :include-macros true]
             [cats.monad.either :as either]))
@@ -250,7 +251,8 @@
 
 (defn raw-chat->chat
   [rchat]
-  {:body (.-body rchat)
+  {:id (.-id rchat)
+   :body (.-body rchat)
    :type (keyword (.-type rchat))
    :from (raw-jid->jid (.-from rchat))
    :to (raw-jid->jid (.-to rchat))
