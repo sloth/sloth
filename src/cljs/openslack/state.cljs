@@ -58,14 +58,25 @@
         from (-> room :from :bare)]
     (update-in app-state [:conversations type from] (fnil empty []))))
 
+(defn update-own-presence
+  [app-state presence]
+  (if (and (= (get-in app-state [:user :resource])
+              (get-in presence [:from :resource])))
+    (assoc-in app-state [:presence (get-in presence [:from :bare])] {:availability (:type presence)
+                                                                     :status (:status presence)})
+    app-state))
+
 (defn update-presence
   [app-state presence]
-  (assoc-in app-state [:presence (get-in presence [:from :bare])] {:availability (:type presence)
-                                                                   :status (:status presence)}))
+  (if (and (= (get-in app-state [:user :local])
+              (get-in presence [:from :local])))
+    (update-own-presence app-state presence)
+    (assoc-in app-state [:presence (get-in presence [:from :bare])] {:availability (:type presence)
+                                                                     :status (:status presence)})))
 
 (defn get-presence
   [app-state user]
-  (get-in app-state [:presence (get-in user [:jid :bare])]))
+  (get-in app-state [:presence (get-in user [:jid :full])]))
 
 (defn room
   [app-state name]
