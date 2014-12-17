@@ -4,6 +4,7 @@
             [shodan.console :as console :include-macros true]
             [cuerdas.core :as str]
             [openslack.state :as st]
+            [openslack.browser :as browser]
             [openslack.views.messages :as msg]
             [openslack.text :refer [enrich-text]]
             [openslack.chat :as chat]))
@@ -124,6 +125,10 @@
   (reify
     om/IDisplayName
     (display-name [_] "Room")
+
+    om/IDidUpdate
+    (did-update [this _ _]
+      (browser/scroll-to-bottom ".messages-container"))
 
     om/IRender
     (render [_]
