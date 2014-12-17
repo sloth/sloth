@@ -30,6 +30,12 @@ Compiling ClojureScript.
 Compiling "resources/public/js/app.js" from ["src/cljs"]...
 ----
 
+If you want to develop interactively, use figwheel instead:
+
+----
+$ lein figwheel
+----
+
 === Frontend development dependencies
 
 You need *ruby*, *nodejs*, *bundler*, *gulp* and *bower* installed.

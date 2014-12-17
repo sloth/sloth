@@ -29,7 +29,7 @@
    ]
    :conversations {:chat {}, :groupchat {}}})
 
-(def state (atom (make-initial-state)))
+(defonce state (atom (make-initial-state)))
 
 (defn logged-in?
   ([]

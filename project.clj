@@ -19,6 +19,7 @@
                  [cc.qbits/jet "0.5.1"]
                  [com.cemerick/piggieback "0.1.3"]
                  [weasel "0.4.2"]
+                 [figwheel "0.1.7-SNAPSHOT"]
 
                  ;; XMPP components
 
@@ -46,7 +47,8 @@
   :source-paths ["src/clj"]
   :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
   :plugins [[lein-cljsbuild "1.0.3"]
-            [hiccup-bridge "1.0.1"]]
+            [hiccup-bridge "1.0.1"]
+            [lein-figwheel "0.1.7-SNAPSHOT"]]
   :cljsbuild {:builds
               [{:id "devel"
                 :source-paths ["src/cljs"]
@@ -69,4 +71,8 @@
   :jvm-opts ["-Dnomad.env=devel"]
   :profiles {:standalone {:main ^:skip-aot openslack.core}
              :release {:main ^:skip-aot openslack.core
-                       :jvm-opts ["-Dnomad.env=release"]}})
+                       :jvm-opts ["-Dnomad.env=release"]}}
+  :figwheel {
+   :http-server-root "public"
+   :server-port 3449
+   :css-dirs ["resources/public/styles"]})
