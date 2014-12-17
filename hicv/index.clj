@@ -11,7 +11,8 @@
     [:div.client-sidebar-holder
      [:div.client-sidebar
       [:div.client-lists
-       [:div.logo "SlothLogo"]
+       [:div.logo
+        [:img {:alt "", :width "100%", :src "/static/imgs/logo.png"}]]
        [:div.room-list.sidebar-list
         [:h3 "Channels"]
         [:ul
@@ -25,10 +26,16 @@
           "SlothThisShit"
           [:i "4"]
           [:i.close-channel "x"]]
-         [:li [:span "#"] "SlothThugLife" [:i.close-channel "x"]]]]
+         [:li [:span "#"] "SlothThugLife" [:i.close-channel "x"]]
+         [:li.highlighted
+          [:span "#"]
+          "SlothMyMachine"
+          [:i "3"]
+          [:i.close-channel "x"]]
+         [:li.add [:span "+"] "Add new channel\n              "]]]
        [:hr]
        [:div.room-list.sidebar-list
-        [:h3.nohover "Invited to this channels"]
+        [:h3 "Invited to this channels"]
         [:ul
          [:li.invited
           [:span "#"]
@@ -58,16 +65,25 @@
           [:span.status.online]
           "SlothMyMachine"
           [:i "3"]
+          [:i.close-channel "x"]
           [:div.read-status "Lorem ipsum dolor sit amet."]]
          [:li.unread
           [:span.status.busy]
           "SlothThisShit"
           [:i "4"]
+          [:i.close-channel "x"]
           [:div.read-status "Lorem ipsum dolor sit amet."]]
          [:li
           [:span.status.offline]
-          "SlothThugLife\n                "
-          [:div.read-status "Lorem ipsum dolor sit amet."]]]]]
+          "SlothThugLife"
+          [:i.close-channel "x"]
+          [:div.read-status "Lorem ipsum dolor sit amet."]]
+         [:li.highlighted
+          [:span.status.online]
+          "SlothThugLife"
+          [:i.close-channel "x"]
+          [:div.read-status "Lorem ipsum dolor sit amet."]]
+         [:li.add [:span "+"] "Add new contact\n              "]]]]
       [:div.active-user
        [:img
         {:height "50",
@@ -102,7 +118,7 @@
          [:div.message-content
           [:div.message-title [:strong "dialelo"] [:span "10:11 pm"]]
           [:p.content "Lorem ipsum dolor sit.\n                  "]]]
-        [:div.message
+        [:div.message.mention.self
          [:div.message-avatar
           [:img
            {:height "35",
@@ -112,8 +128,10 @@
          [:div.message-content
           [:div.message-title [:strong "Ramiro"] [:span "10:30 pm"]]
           [:p.content
-           "  Lorem ipsum dolor sit amet, consectetur adipisicing elit. Pariatur ab reiciendis ducimus, iure ad, blanditiis rerum nobis, laboriosam quae repudiandae atque!\n                  "]]]
-        [:div.message
+           "  Lorem ipsum "
+           [:i.mention-user "Niwibe"]
+           " dolor sit amet, consectetur adipisicing elit. Pariatur ab reiciendis ducimus, iure ad, blanditiis rerum nobis, laboriosam quae repudiandae atque!\n                  "]]]
+        [:div.message.mention.self.highlighted
          [:div.message-avatar
           [:img
            {:height "35",
@@ -123,7 +141,9 @@
          [:div.message-content
           [:div.message-title [:strong "dialelo"] [:span "11:30 pm"]]
           [:p.content
-           "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Necessitatibus enim est sapiente ratione impedit!\n                  "]]]
+           "Lorem ipsum "
+           [:i.mention-user "Dialelo"]
+           " dolor sit amet, consectetur adipisicing elit. Necessitatibus enim est sapiente ratione impedit!\n                  "]]]
         [:div.message
          [:div.message-avatar
           [:img
@@ -134,7 +154,7 @@
          [:div.message-content
           [:div.message-title [:strong "dialelo"] [:span "10:11 pm"]]
           [:p.content "Lorem ipsum dolor sit.\n                  "]]]
-        [:div.message
+        [:div.message.mention
          [:div.message-avatar
           [:img
            {:height "35",
@@ -144,7 +164,9 @@
          [:div.message-content
           [:div.message-title [:strong "Ramiro"] [:span "10:30 pm"]]
           [:p.content
-           "  Lorem ipsum dolor sit amet, consectetur adipisicing elit. Pariatur ab reiciendis ducimus, iure ad, blanditiis rerum nobis, laboriosam quae repudiandae atque!\n                  "]]]
+           "  Lorem ipsum dolor "
+           [:i.mention-user "Dialelo"]
+           " sit amet, consectetur adipisicing elit. Pariatur ab reiciendis ducimus, iure ad, blanditiis rerum nobis, laboriosam quae repudiandae atque!\n                  "]]]
         [:div.message
          [:div.message-avatar
           [:img
@@ -271,5 +293,5 @@
           [:div.message-title [:strong "dialelo"] [:span "11:30 pm"]]
           [:p.content
            "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Necessitatibus enim est sapiente ratione impedit!\n                  "]]]]
-       [:div.write-message [:textarea " "] [:button "Send"]]]
+       [:div.write-message [:textarea " "]]]
       [:div.chat-sidebar-holder [:div]]]]]]])

@@ -17,7 +17,8 @@
       (s/html [:div.client-sidebar-holder
                [:div.client-sidebar
                 [:div.client-lists
-                 [:div.logo "SlothLogo"]
+                 [:div.logo
+                  [:img {:alt "Sloth logo", :width "100%", :src "/static/imgs/logo.png"}]]
                  (om/build channels state)
                  [:hr]
                  (om/build subscriptions state)

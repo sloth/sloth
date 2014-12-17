@@ -23,7 +23,7 @@
                               is-current-contact? (and (= (get-in state [:page :state]) :contact)
                                                        (= (get-in state [:page :contact]) name))
                               attrs {:on-click #(navigate (contact-route {:name name}))
-                                     :class-name (when is-current-contact? "highlight")}]]
+                                     :class-name (when is-current-contact? "highlighted")}]]
                     [:li attrs
                      (condp = (:availability presence)
                        :available [:span.status.online]
@@ -32,4 +32,5 @@
                        [:span.status.offline])
                       name
 ;                     [:i "3"]
-                     [:div.read-status (:status presence)]])]])))))
+                     [:div.read-status (:status presence)]])
+                  [:li.add [:span "+"] "Add new contact\n              "]]])))))
