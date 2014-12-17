@@ -77,3 +77,7 @@ strong {
     border-color: darken($status-offline,30%)
   }
 }
+
+.cross-out {
+    text-decoration: line-through;
+}

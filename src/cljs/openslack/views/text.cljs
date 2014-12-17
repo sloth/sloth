@@ -937,3 +937,25 @@
                            e))))
 
 (register-enricher! emoji-regex emoji-converter)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Markup
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def bold-regex #"\*[^*\n]+\*")
+(def bold-converter (fn [s]
+                      [:strong (unsurround s)]))
+
+(register-enricher! bold-regex bold-converter)
+
+(def cursive-regex #"/[^/\n]+/")
+(def cursive-converter (fn [s]
+                         [:em (unsurround s)]))
+
+(register-enricher! cursive-regex cursive-converter)
+
+(def cross-out-regex #"-[^/\n]+-")
+(def cross-out-converter (fn [s]
+                         [:i.cross-out (unsurround s)]))
+
+(register-enricher! cross-out-regex cross-out-converter)
