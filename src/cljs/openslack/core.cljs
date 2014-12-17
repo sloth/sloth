@@ -70,7 +70,8 @@
   (add-watch st/state :log-in (fn [_ _ oldval newval]
                                 (when (and (not (st/logged-in? oldval))
                                            (st/logged-in? newval))
-                                    (start-xmpp-session!)))))
+                                  (.requestPermission js/Notification)
+                                  (start-xmpp-session!)))))
 
 (defn main
   []
