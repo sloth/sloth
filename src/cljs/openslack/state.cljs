@@ -1,4 +1,6 @@
-(ns openslack.state)
+(ns openslack.state
+  (:require [shodan.console :as console :include-macros true]))
+
 
 ; TODO: schema of state?
 (defn make-initial-state []
@@ -42,9 +44,13 @@
   ([st]
    (not (nil? (:auth st)))))
 
-(defn logged-in-user
-  [app-state]
-  (:user app-state))
+(defn get-logged-user
+  ([] (get-logged-user @state))
+  ([state] (:user state)))
+
+(defn get-client
+  ([] (get-client @state))
+  ([state] (:client state)))
 
 (defn initialize-session
   [{:keys [user client auth]}]
@@ -60,9 +66,13 @@
         from (get-in chat [:from :bare])]
     (update-in app-state [:conversations type from] (fnil conj []) chat)))
 
-(defn add-own-chat
-  [app-state chat]
-  (update-in app-state [:conversations :chat (:to chat)] (fnil conj []) chat))
+(defn insert-message
+  [from message]
+  (swap! state
+         (fn [v]
+           (let [recipient (get-in from [:jid :bare])]
+             (update-in v [:conversations :chat recipient] (fnil conj []) message)))))
+
 
 (defn join-room
   ;; TODO: rename

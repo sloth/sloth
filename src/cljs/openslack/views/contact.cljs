@@ -13,23 +13,6 @@
 ;; Message input
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn send-message
-  [owner user message]
-  (let [useraddress (get-in user [:jid :bare])
-        message (str/trim message)]
-    (console/log "SEND TO" useraddress)
-    (console/log "SEND MSG" message)
-    (chat/send-personal-message useraddress message)
-    (om/set-state! owner :message "")))
-
-(defn- ready-to-send?
-  [event message]
-  (if (= (.-keyCode event) 13)
-    (if (or (.-ctrlKey event) (.-shiftKey event))
-      false
-      true)
-    false))
-
 (defn- ready-to-send?
   [event message]
   (and (= (.-keyCode event) 13)
@@ -47,7 +30,8 @@
      (ready-to-send? event message)
      (do
        (.preventDefault event)
-       (send-message owner user message)
+       (chat/send-personal-message state user message)
+       (om/set-state! owner :message "")
        (set!  (.-value target) ""))
 
      :else
@@ -68,8 +52,6 @@
             user (st/get-contact state nickname)
             onkeyup (partial onkeyup state owner user)]
 
-        (console/log (pr-str nickname)
-                     (pr-str user))
         (s/html
          [:div.write-message
           [:textarea {:auto-focus true
@@ -94,7 +76,7 @@
             classname (if (= author (:local loggeduser))
                         "message self"
                         "message")]
-        {:author (:resource (:from event))
+        {:author (:local (:from event))
          :body (enrich-text (:body event))
          :avatar (:avatar event placeholder-avatar-route)
          :classname classname}))

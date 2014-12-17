@@ -6,22 +6,29 @@
             [openslack.state :as st]))
 
 (defn send-group-message
-  [recipient body]
-  (when-let [client (:client @st/state)]
-    (xmpp/send-message client {:to recipient
-                               :type :groupchat
-                               :body body})))
+  [state room message]
+  (let [client (:client state)
+        recipient (get-in room [:jid :bare])]
+    (when client
+      (xmpp/send-message client {:to recipient
+                                 :type :groupchat
+                                 :body message}))))
 
 (defn send-personal-message
-  [recipient body]
-  (when-let [client (:client @st/state)]
-    (console/log 111)
-    (let [message {:to recipient
-                   :type :chat
-                   :from (st/logged-in-user @st/state)
-                   :body body}]
+  [state user message]
+  (let [loggeduser (st/get-logged-user state)
+        client (st/get-client state)
+        source (get-in loggeduser [:jid :bare])
+        recipient (get-in user [:jid :bare])]
 
-      ;; TODO: handle duplicate msg errors
-      (xmpp/send-message client message)
-      (swap! st/state st/add-own-chat
-             (assoc message :timestamp (js/Date.))))))
+    (when client
+      (xmpp/send-message client {:to recipient
+                                 :type :chat
+                                 :body message})
+
+      (st/insert-message user {:to user
+                               :from loggeduser
+                               :type :chat
+                               :timestamp (js/Date.)
+                               :body message}))))
+

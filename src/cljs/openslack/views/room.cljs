@@ -13,22 +13,6 @@
 ;; Message input
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-(defn send-message
-  [owner room message]
-  (let [roomaddress (get-in room [:jid :bare])]
-    (chat/send-group-message roomaddress message)
-    (om/set-state! owner :message "")))
-
-;; FIXME: two defns with the same name
-(defn- ready-to-send?
-  [event message]
-  (if (= (.-keyCode event) 13)
-    (if (or (.-ctrlKey event) (.-shiftKey event))
-      false
-      true)
-    false))
-
 (defn- ready-to-send?
   [event message]
   (and (= (.-keyCode event) 13)
@@ -46,7 +30,8 @@
      (ready-to-send? event message)
      (do
        (.preventDefault event)
-       (send-message owner room message)
+       (chat/send-group-message state room message)
+       (om/set-state! owner :message "")
        (set!  (.-value target) ""))
 
      :else
