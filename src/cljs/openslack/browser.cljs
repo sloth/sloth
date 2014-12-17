@@ -7,7 +7,7 @@
 (defn scroll-to-bottom
   [query]
   (let [element (.querySelector js/document query)
-        height (.-offsetHeight element)]
+        height (.-scrollHeight element)]
     (set! (.-scrollTop element) height)))
 
 (defn notify
