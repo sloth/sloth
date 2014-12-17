@@ -199,7 +199,8 @@
     right: 0.5em;
     text-align: center;
     top: 3px;
-    height: 14px;
+    padding: 0 2px;
+    height: 16px;
     width: 14px;
     z-index: $unreaded-messages-popup;
     &.close-channel {
@@ -208,7 +209,6 @@
       display: none;
       font-family: Lato;
       font-size: 10px;
-      padding: 0;
       top: 3px;
       height: 14px;
       width: 14px;
