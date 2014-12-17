@@ -1,5 +1,6 @@
-(ns openslack.text
-  (:require [cuerdas.core :as str]))
+(ns openslack.views.text
+  (:require [cuerdas.core :as str]
+            [openslack.routing :refer [emoji-route]]))
 
 (def enrichers (atom []))
 
@@ -26,7 +27,9 @@
                                  [v])) %)))
     (filter (complement empty?) @result)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Images
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def img-regex #"https?://.*\.(?:jpe?g|gif|png)")
 (def img-converter (fn [e]
@@ -34,7 +37,9 @@
                             :class-name "message-image"}]))
 (register-enricher! img-regex img-converter)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emoji
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def valid-emojis
   #{"100"
@@ -919,11 +924,15 @@
     "zero"
     "zzz"})
 
+(defn unsurround
+  [s]
+  (.substring s 1 (dec (.-length s))))
+
 (def emoji-regex #"\:[^\\s:]+\:")
 (def emoji-converter (fn [e]
-                       (let [emoji (.substring e 1 (dec (.-length e)))]
+                       (let [emoji (unsurround e)]
                          (if (valid-emojis emoji)
-                           [:img {:src (str "/static/imgs/emoji/" emoji ".png")
+                           [:img {:src (emoji-route emoji)
                                   :class-name "emoji"}]
                            e))))
 

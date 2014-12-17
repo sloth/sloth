@@ -4,7 +4,7 @@
             [shodan.console :as console :include-macros true]
             [cuerdas.core :as str]
             [openslack.state :as st]
-            [openslack.text :refer [enrich-text]]
+            [openslack.views.text :refer [enrich-text]]
             [openslack.chat :as chat]))
 
 

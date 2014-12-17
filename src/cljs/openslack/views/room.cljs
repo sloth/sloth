@@ -5,7 +5,7 @@
             [cuerdas.core :as str]
             [openslack.state :as st]
             [openslack.browser :as browser]
-            [openslack.text :refer [enrich-text]]
+            [openslack.views.text :refer [enrich-text]]
             [openslack.chat :as chat]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
