@@ -34,7 +34,7 @@
                  [clj-time "0.8.0"]
 
                  ;; Frontend dependencies
-                 [org.clojure/clojurescript "0.0-2411"]
+                 [org.clojure/clojurescript "0.0-2496"]
                  [secretary "1.2.1"]
                  [sablono "0.2.22" :exclusions [com.facebook/react]]
                  [om "0.8.0-beta3"]
