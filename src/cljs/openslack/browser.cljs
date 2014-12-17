@@ -12,4 +12,4 @@
 
 (defn notify
   [title body icon]
-  (js/Notification. title (js-obj :body body :icon icon)))
+  (js/Notification. title #js {:body body :icon icon}))
