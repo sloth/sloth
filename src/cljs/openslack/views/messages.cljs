@@ -61,7 +61,7 @@
                                                  (str "0" mins)
                                                  mins)]
                                       (str hours ":" mins))]]
-         [:p.content (enrich-text  (:body state))]]]))))
+         [:p.content (enrich-text (:body state))]]]))))
 
 (defn room-message
   [state owner]

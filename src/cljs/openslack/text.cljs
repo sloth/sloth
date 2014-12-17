@@ -1,4 +1,3 @@
-; TODO: List of valid emojis
 (ns openslack.text
   (:require [cuerdas.core :as str]))
 
@@ -26,7 +25,7 @@
 (def emoji-regex #"\:[^\\s:]+\:")
 (def emoji-converter (fn [e]
                        [:img {:src (str "/static/imgs/emoji/"
-                                        (.substring e 1 (dec  (.-length e)))
+                                        (.substring e 1 (dec (.-length e)))
                                         ".png")
                               :class-name "emoji"}]))
 (register-enricher! emoji-regex emoji-converter)
