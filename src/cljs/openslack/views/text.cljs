@@ -1,6 +1,7 @@
 (ns openslack.views.text
   (:require [cuerdas.core :as str]
-            [openslack.routing :refer [emoji-route]]))
+            [openslack.routing :refer [emoji-route]])
+  (:import [goog Uri]))
 
 (def enrichers (atom []))
 
@@ -52,11 +53,22 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def http-url-regex #"https?://[^\s]+")
-(defn http-url-converter
+
+(defmulti convert-http-url
+  (fn [url]
+    (.getDomain (Uri. url))))
+
+(defmethod convert-http-url "imgur.com"
+  [url]
+  (let [uri (Uri. url)]
+    [:img {:src (str "http://i.imgur.com" (.getPath uri) ".jpg")
+           :class-name "message-image"}]))
+
+(defmethod convert-http-url :default
   [url]
   [:a {:href url} url])
 
-(register-enricher! http-url-regex http-url-converter)
+(register-enricher! http-url-regex convert-http-url)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emoji
