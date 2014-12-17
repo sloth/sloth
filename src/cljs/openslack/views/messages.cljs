@@ -23,7 +23,7 @@
             :on-change (fn [e] (om/set-state! owner :message (.-value (.-target e))))
             :on-key-down (fn [e]
                            (when (= (.-keyCode e) 13)
-                             (if (.-ctrlKey e)
+                             (if (or (.-ctrlKey e) (.-shiftKey e))
                                (om/set-state! owner :message (str message "\n"))
                                (do
                                  (.preventDefault e)
