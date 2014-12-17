@@ -23,12 +23,12 @@
    ;;                  :from {:jid "ramiro@niwi.be"
    ;;                         :local "ramiro"}
    ;;                  :room {:name "anime"}}]
-   ;; :channels []
-   :channels [
-      {:jid {:local "sloth"
-             :bare "sloth@conference.niwi.be"}
-       :unread 0}
-   ]
+   :channels {:sloth {:local "sloth"
+                      :bare "sloth@conference.niwi.be"
+                      :unread 0}
+              :testroom {:local "testroom"
+                         :bare "testroom@conference.niwi.be"
+                         :unread 0}}
    :chats {}
    :groupchats {}})
 
@@ -115,8 +115,8 @@
 (defn get-room
   [state name]
   (let [channels (:channels state)
-        filtered (filter (fn [ch] (= name (get-in ch [:jid :local]))) channels)]
-    (first filtered)))
+        name (keyword name)]
+    (get channels name)))
 
 (defn get-contact
   [state nickname]
@@ -126,7 +126,7 @@
 
 (defn get-room-messages
   [state room]
-  (let [roomaddress (get-in room [:jid :bare])]
+  (let [roomaddress (:bare room)]
     (get-in state [:groupchats roomaddress])))
 
 (defn get-contact-messages

@@ -1,6 +1,7 @@
 (ns openslack.views.channels
   (:require [om.core :as om :include-macros true]
             [openslack.routing :refer [navigate room-route]]
+            [shodan.console :as console :include-macros true]
             [sablono.core :as s :include-macros true]
             [openslack.views.user :refer [user]]))
 
@@ -10,20 +11,29 @@
     om/IDisplayName
     (display-name [_] "Channels")
 
-    om/IRender
-    (render [_]
-      (s/html (when (:channels state)
-                [:div.room-list.sidebar-list
-                 [:h3 "Channels"]
-                 [:ul
-                  (for [chan (:channels state)
-                        :let [jid (:jid chan)
-                              name (:local jid)
-                              is-current-chan? (and (= (get-in state [:page :state]) :room)
-                                                    (= (get-in state [:page :room])  name))
-                              unread (:unread chan 0)
-                              attrs {:on-click #(navigate (room-route {:name name}))
-                                     :class-name (when is-current-chan? "highlighted")}]]
-                    (let [tag (if (> unread 0) :li.unread :li)]
-                      [tag attrs [:span "#"] name [:i unread] [:i.close-channel "x"]]))
-                 [:li.add [:span "+"] "Add new channel\n              "]]])))))
+    om/IInitState
+    (init-state [_]
+      (let [channels (:channels state)
+            chanlist (sort-by first (seq channels))
+            chanlist (map second chanlist)]
+        {:channels channels
+         :chanlist chanlist}))
+
+    om/IRenderState
+    (render-state [_ {:keys [channels chanlist]}]
+      (when chanlist
+        (s/html
+         [:div.room-list.sidebar-list
+          [:h3 "Channels"]
+          [:ul (for [chan chanlist]
+                 (let [name (:local chan)
+                       is-current-chan? (and (= (get-in state [:page :state]) :room)
+                                             (= (get-in state [:page :room])  name))
+                       unread (:unread chan 0)
+                       attrs {:on-click #(navigate (room-route {:name name}))
+                              :class-name (when is-current-chan? "highlighted")}]
+                   (if (> unread 0)
+                     [:li.unread attrs name [:i unread] [:i.close-channel "x"]]
+                     [:li attrs name [:i unread] [:i.close-channel "x"]])))
+           [:li.add
+            [:span "+"] "Add new channel\n              "]]])))))

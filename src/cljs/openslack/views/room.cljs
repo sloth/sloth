@@ -130,7 +130,7 @@
           (s/html
            [:section.client-main
             [:header
-             [:h1 (str "#" (get-in room [:jid :local]))]
+             [:h1 (str "#" (get-in room [:local]))]
              [:h2
               "Le topic del dia: Los "
               [:strong "Sloth"]

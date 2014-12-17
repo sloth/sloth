@@ -95,6 +95,7 @@
 
       ;; Force join room
       (<! (xmpp/join-room client "sloth@conference.niwi.be" (:local (:user @st/state))))
+      (<! (xmpp/join-room client "testroom@conference.niwi.be" (:local (:user @st/state))))
       )))
 
 (defn mount-root-component

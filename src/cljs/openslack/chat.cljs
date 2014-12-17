@@ -8,7 +8,7 @@
 (defn send-group-message
   [state room message]
   (let [client (:client state)
-        recipient (get-in room [:jid :bare])]
+        recipient (:bare room)]
     (when client
       (xmpp/send-message client {:to recipient
                                  :type :groupchat
