@@ -934,7 +934,7 @@
     "zero"
     "zzz"})
 
-(def emoji-regex #"\:[^\\s:]+\:")
+(def emoji-regex #"\:[^:\s]+\:")
 (defn emoji-converter
   [e]
   (let [emoji (unsurround e)]
