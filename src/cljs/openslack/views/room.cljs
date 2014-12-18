@@ -32,7 +32,7 @@
        (.preventDefault event)
        (chat/send-group-message state room message)
        (om/set-state! owner :message "")
-       (set!  (.-value target) ""))
+       (set! (.-value target) ""))
 
      :else
      (om/set-state! owner :message message))))

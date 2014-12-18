@@ -18,14 +18,14 @@
 
 (enable-console-print!)
 
-;; Enable browser enabled repl and hot code loading.
+;; Enable browser enabled repl.
 (ws-repl/connect "ws://localhost:9001")
-(fw/start {
-  :websocket-url "ws://localhost:3449/figwheel-ws"
-  :on-jsload (fn [] (print "reloaded"))
-  :heads-up-display true
-  :load-warninged-code false
-})
+;; (fw/start {
+;;   :websocket-url "ws://localhost:3449/figwheel-ws"
+;;   :on-jsload (fn [] (print "reloaded"))
+;;   :heads-up-display true
+;;   :load-warninged-code false
+;; })
 
 (defn- start-roster-watcher
   [client]

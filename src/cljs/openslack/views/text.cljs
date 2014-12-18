@@ -1,7 +1,7 @@
 (ns openslack.views.text
   (:require [cuerdas.core :as str]
             [openslack.state :as st]
-            [openslack.routing :refer [emoji-route room-route contact-route]])
+            [openslack.routing :refer [emoji-route room-route contact-route navigate]])
   (:import [goog Uri]))
 
 (def enrichers (atom []))
@@ -81,9 +81,14 @@
 (def room-regex #"#\w+")
 (defn room-converter
   [room-name]
-  (let [room-local (str/ltrim room-name "#")]
+  (let [room-local (str/ltrim room-name "#")
+        room-route (room-route {:name room-local})]
     (if-let [maybe-room (st/get-room @st/state room-local)]
-      [:a {:href (room-route {:name room-local})} room-name]
+      [:a {:href room-route
+           :on-click (fn [e]
+                       (.preventDefault e)
+                       (navigate room-route))}
+       room-name]
       [:span room-name])))
 
 (register-enricher! room-regex room-converter)
@@ -92,14 +97,19 @@
 ;; Contacts
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def contact-regex #"@\w+")
+(def contact-regex #"@[^\s]+")
 (defn contact-converter
   [contact-name]
-  (let [contact-local (str/ltrim contact-name "@")]
+  (let [contact-local (str/ltrim contact-name "@")
+        contact-url (contact-route {:name contact-local})]
     ;; TODO: if it's the logged-in users name we may want to do something special
     (if-let [maybe-contact (st/get-contact @st/state contact-local)]
       ;; TODO: mention-user class sets background, doesn't look good with links
-      [:a {:href (contact-route {:name contact-local})} contact-name]
+      [:a {:href contact-url
+           :on-click (fn [e]
+                       (.preventDefault e)
+                       (navigate contact-url))}
+       contact-name]
       [:span contact-name])))
 
 (register-enricher! contact-regex contact-converter)
