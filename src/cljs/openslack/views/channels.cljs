@@ -26,6 +26,7 @@
             attrs {:on-click #(navigate (room-route {:name name}))
                    :class-name (cond
                                 (and current (> unread 0)) "highlighted unread"
+                                (and current (= unread 0)) "highlighted"
                                 (> unread 0) "unread"
                                 :else "")}]
         ;; (console/log "channel$render" name unread)
@@ -54,4 +55,3 @@
                                                       :key :local}))
              [:li.add
               [:span "+"] "Add new channel\n              "]]]))))))
-
