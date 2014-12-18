@@ -109,13 +109,9 @@
     om/IDisplayName
     (display-name [_] "contact")
 
-    om/IInitState
-    (init-state [_]
-      {:nickname (get-in state [:page :contact])})
-
-    om/IRenderState
-    (render-state [_ {:keys [nickname]}]
-      (when nickname
+    om/IRender
+    (render [_]
+      (when-let [nickname (get-in state [:page :contact])]
         (let [user (st/get-contact state nickname)
               presence (st/get-presence state user)
               status (:status presence)

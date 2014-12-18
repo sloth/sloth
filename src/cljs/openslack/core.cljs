@@ -31,7 +31,6 @@
   [client]
   (go-loop []
     (let [mroster (<! (xmpp/get-roster client))]
-      (console/log "initialize-roster" (pr-str (either/from-either mroster)))
       (if (either/right? mroster)
         (st/update-roster (either/from-either mroster))
         (recur)))))
@@ -49,9 +48,9 @@
   (let [chats (xmpp/chats client)]
     (go-loop []
       (when-let [message (<! chats)]
-        (let [from (:from message)]
-          (st/insert-message from message))
-        (recur)))))
+        ;; (console/log "message" (pr-str message))
+        (st/insert-message message))
+        (recur))))
 
 (defn- start-raw-packets-watcher
   [client]

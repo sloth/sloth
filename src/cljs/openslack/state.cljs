@@ -68,25 +68,44 @@
         from (get-in chat [:from :bare])]
     (update-in app-state [ type from] (fnil conj []) chat)))
 
+(declare get-room)
+(declare get-current-room)
+
 (defn- insert-group-message
-  [from message]
-  (let [recipient (get from :bare)]
+  [message]
+  (let [roomname (get-in message [:from :local])
+        recipient (get-in message [:from :bare])
+        currentroom (get-current-room)]
 
     (browser/notify-if-applies message)
+
+    ;; (when (not= (:local currentroom)
+    ;;             (:local roomname))
+    ;;   (when-let [room (get-room roomname)]
+    ;;     (console/log "KAKA1" (pr-str roomname))
+    ;;     (console/log "KAKA2" (pr-str room))
+    ;;     (swap! state update-in [:channels (keyword roomname) :unread] inc)))
+
+    ;; (console/log "insert-group-message"
+    ;;              (pr-str currentroom)
+    ;;              (pr-str from))
+
+    ;; Insert message to state
     (swap! state (fn [state]
                    (update-in state [:groupchats recipient] (fnil conj []) message)))))
 
 (defn- insert-private-message
-  [from message]
-  (let [recipient (get from :bare)]
+  [message]
+  (let [recipient (get-in message [:from :bare])]
+    ;; Append messages
     (swap! state (fn [state]
                    (update-in state [:chats recipient] (fnil conj []) message)))))
 
 (defn insert-message
-  [from message]
+  [message]
   (condp = (:type message)
-    :chat (insert-private-message from message)
-    :groupchat (insert-group-message from message)))
+    :chat (insert-private-message message)
+    :groupchat (insert-group-message message)))
 
 (defn join-room
   ;; TODO: rename
@@ -117,10 +136,17 @@
      (get-in state [:presence useraddress]))))
 
 (defn get-room
-  [state name]
-  (let [channels (:channels state)
-        name (keyword name)]
-    (get channels name)))
+  ([name] (get-room @state name))
+  ([state name]
+   (let [channels (:channels state)
+         name (keyword name)]
+     (get channels name))))
+
+(defn get-current-room
+  ([] (get-current-room @state))
+  ([state]
+   (when-let [roomname (get-in state [:page :room])]
+     (get-room state roomname))))
 
 (defn update-roster
   [roster]

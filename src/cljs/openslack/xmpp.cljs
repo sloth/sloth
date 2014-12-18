@@ -233,14 +233,18 @@
 
 (defn raw-chat->chat
   [rchat]
-  {:id (.-id rchat)
-   :body (.-body rchat)
-   :type (keyword (.-type rchat))
-   :from (raw-jid->jid (.-from rchat))
-   :to (raw-jid->jid (.-to rchat))
-   :timestamp (if-let [stamp (some-> rchat .-delay .-stamp)]
-               stamp
-               (js/Date.))})
+  (let [chat (transient {:id (.-id rchat)
+                         :body (.-body rchat)
+                         :type (keyword (.-type rchat))
+                         :from (raw-jid->jid (.-from rchat))
+                         :to (raw-jid->jid (.-to rchat))
+                         :timestamp (js/Date.)})]
+    (when-let [delay (.-delay rchat)]
+      (assoc! chat
+              :timestamp (.-stamp delay)
+              :delay (js->clj delay)
+              :delay? true))
+    (persistent! chat)))
 
 (defn chats [client]
   (let [c (async/chan 10 (map raw-chat->chat))]

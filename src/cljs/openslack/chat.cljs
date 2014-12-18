@@ -24,8 +24,8 @@
       (xmpp/send-message client {:to recipient
                                  :type :chat
                                  :body message})
-      (st/insert-message user {:to user
-                               :from loggeduser
-                               :type :chat
-                               :timestamp (js/Date.)
-                               :body message}))))
+      (st/insert-message {:to user
+                          :from loggeduser
+                          :type :chat
+                          :timestamp (js/Date.)
+                          :body message}))))
