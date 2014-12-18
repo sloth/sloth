@@ -73,6 +73,15 @@
                rpath)]
     (make-image-message (str domain path ".jpg"))))
 
+(defmethod convert-http-url :giphy.com
+  [url]
+  (let [uri (Uri. url)
+        rpath (.getPath uri)
+        gif-id (last (str/split rpath "-"))
+        domain "http://media.giphy.com"
+        path (str "/media/" gif-id "/giphy.gif")]
+    (make-image-message (str domain path))))
+
 
 (defmethod convert-http-url :default
   [url]
