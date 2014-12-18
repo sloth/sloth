@@ -18,7 +18,7 @@
     (js/setTimeout (fn []
                      (let [maxscroll (calculate-max-scroll element)]
                        (set! (.-scrollTop element) maxscroll)))
-                   1000)))
+                   500)))
 
 
 (defn notify

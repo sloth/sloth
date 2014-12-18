@@ -29,10 +29,12 @@
 
 (defn- start-roster-watcher
   [client]
-  (go-loop [mroster (<! (xmpp/get-roster client))]
-    (if-let [roster (either/from-either mroster)]
-      (swap! st/state assoc :roster roster)
-      (recur (<! (xmpp/get-roster client))))))
+  (go-loop []
+    (let [mroster (<! (xmpp/get-roster client))]
+      (console/log "initialize-roster" (pr-str (either/from-either mroster)))
+      (if (either/right? mroster)
+        (st/update-roster (either/from-either mroster))
+        (recur)))))
 
 (defn- start-presence-watcher
   [client]
@@ -82,7 +84,7 @@
       (xmpp/send-presence client)
 
       ;; Start watchers
-      (start-roster-watcher client)
+      (initialize-roster client)
       (start-presence-watcher client)
       (start-chat-watcher client)
 

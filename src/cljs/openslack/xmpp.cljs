@@ -1,6 +1,6 @@
 (ns openslack.xmpp
-  (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [cljs.core.async :as async :refer [<! timeout put!]]
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
+  (:require [cljs.core.async :as async :refer [<! timeout put! chan close!]]
             [shodan.console :as console :include-macros true]
             [openslack.config :as config]
             [cats.core :as m :include-macros true]
@@ -133,41 +133,23 @@
                                  :password password}}))))))
 ;; Roster
 
-(defn raw-roster->roster [rroster]
-  (into [] (map (fn [ritem]
-                  {:jid (raw-jid->jid (.-jid ritem))
-                   :subscription (keyword (.-subscription ritem))})
-                (.-items (.-roster rroster)))))
+(defn raw-roster->roster
+  [rroster]
+  (let [transformfn (fn [rosteritem]
+                      (let [item (raw-jid->jid (.-jid rosteritem))]
+                        [(keyword (:local item))
+                         (assoc item :subscription (keyword (.-subscription rosteritem)))]))]
+    (into {} (map transformfn (.-items (.-roster rroster))))))
 
-(defn get-roster [client]
+(defn get-roster
+  [client]
   (let [c (async/chan 1)]
     (.getRoster client (fn [_ rroster]
                           (->> (if (= (.-type rroster) "error")
                                  (either/left (keyword (.-condition (.-error rroster))))
                                  (either/right (raw-roster->roster rroster)))
-                                (async/put! c))))
-    c))
-
-(defn raw-roster-update->roster-update [rrupdate]
-  {:jid (raw-jid->jid (.-jid rrupdate))
-   :subscription (keyword (.-subscription rrupdate))})
-
-(defn roster-updates [client]
-  (let [c (async/chan)]
-    (.on client "roster:update" (fn [rroster]
-                                  (async/onto-chan c
-                                                   (map raw-roster-update->roster-update
-                                                        (.-items (.-roster rroster)))
-                                                   false)))
-    c))
-
-(defn update-roster-item [client item]
-  (let [c (async/chan 1)]
-    (.updateRosterItem client (clj->js item) (fn [_ ritem]
-                                                (->> (if (= (.-type ritem) "error")
-                                                       (either/left (keyword (.-condition (.-error ritem))))
-                                                       (either/right (js->clj ritem)))
-                                                     (async/put! c))))
+                                (put! c))
+                          (close! c)))
     c))
 
 (defn accept-subscription [client jid]

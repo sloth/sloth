@@ -8,7 +8,7 @@
    :client nil
    :user nil
    :features []
-   :roster []
+   :roster {}
    :presence {}
    :subscriptions []
    ;; :subscriptions [{:type :room
@@ -108,9 +108,10 @@
     (assoc-in app-state [:presence (get-in presence [:from :bare])] {:availability (:type presence)
                                                                      :status (:status presence)})))
 (defn get-presence
-  [state user]
-  (let [useraddress (get-in user [:jid :full])]
-    (get-in state [:presence useraddress])))
+  ([user] (get-presence @state user))
+  ([state user]
+   (let [useraddress (get-in user [:full])]
+     (get-in state [:presence useraddress]))))
 
 (defn get-room
   [state name]
@@ -118,11 +119,15 @@
         name (keyword name)]
     (get channels name)))
 
+(defn update-roster
+  [roster]
+  (swap! state assoc :roster roster))
+
 (defn get-contact
-  [state nickname]
-  (let [contacts (:roster state)
-        filtered (filter (fn [c] (= nickname (get-in c [:jid :local]))) contacts)]
-    (:jid (first filtered))))
+  ([nickname] (get-contact @state nickname))
+  ([state nickname]
+   (let [contacts (:roster state)]
+     (get contacts (keyword nickname)))))
 
 (defn get-room-messages
   [state room]
