@@ -5,6 +5,7 @@
    [:meta {:charset "utf-8"}]
    [:title "Open Sloth"]
    [:meta {:content "Open Sloth", :name "description"}]
+   [:link {:rel "shortcut icon" :type "image/png" :href "/static/imgs/favicon.png"}]
    [:link {:href "/static/styles/main.css", :rel "stylesheet"}]]
   [:body
    [:section#app.client
