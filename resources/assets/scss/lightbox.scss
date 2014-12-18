@@ -1,0 +1,131 @@
+.lightbox-shadow {
+  background: rgba(0,0,0,0.5);
+  @include display(flex);
+  @include justify-content(center);
+  @include align-items(center);
+  height: 100%;
+  .lightbox {
+    @include border-radius(25px);
+    background: #fff;
+    min-width: 300px;
+    min-height: 300px;
+    overflow: hidden;
+  }
+}
+
+@keyframes datBubble {
+  0% {
+    display:none;
+    opacity: 0;
+  }
+
+  50% {
+    display:none;
+    opacity: 0;
+  }
+
+  100% {
+    display: block;
+    opacity: 1;
+  }
+}
+@-webkit-keyframes datBubble {
+  0% {
+    display:none;
+    opacity: 0;
+  }
+
+  50% {
+    display:none;
+    opacity: 0;
+  }
+
+  100% {
+    display: block;
+    opacity: 1;
+  }
+}
+
+.login {
+  @include background(linear-gradient(#1B3249, #549AE2) left repeat);
+  position: relative;
+  height: 600px;
+  width: 800px;
+  .logo {
+    background: url(/static/imgs/logo-letters-down.png);
+    background-size: cover;
+    height: 114px;
+    position: absolute;
+    left: 50%;
+    top: -62px;
+    margin-left: -70px;
+    width: 140px;
+  }
+  .login-form {
+    @include border-radius(5px);
+    background: #fff;
+    padding: 1em;
+    position: absolute;
+    left: 40px;
+    top: 90px;
+    width: 350px;
+    padding-top: 60px;
+    z-index: $login-box;
+    input {
+      @include border-radius(5px);
+      @include box-sizing (border-box);
+      @include display(block);
+      margin-bottom: 10px;
+      padding: 10px 10px;
+      width: 100%;
+    }
+    button {
+
+    }
+  }
+  .dat-sloth {
+    @include transition(all 2.0s ease-in-out);
+    background: url(/static/imgs/login/dat-sloth.png);
+    background-size: cover;
+    position: absolute;
+    width: 350px;
+    height: 435px;
+    right: -400px;
+    bottom: -497px;
+    z-index: $dat-sloth;
+  }
+  .dat-text {
+    @include border-radius(50px);
+    background: #fff;
+    color: #000;
+    font-size: 35px;
+    font-family: Lato;
+    position: absolute;
+    bottom: 50px;
+    padding: 30px;
+    left: 50px;
+    text-align: center;
+    width: 300px;
+    z-index: $dat-bubble-text;
+    -webkit-animation-duration: 2.5s;
+    -webkit-animation-name: datBubble;
+  }
+  .dat-bubble-arrow {
+    background: url(/static/imgs/login/dat-bubble-arrow.png);
+    background-size: cover;
+    width: 90px;
+    height: 90px;
+    bottom: 110px;
+    left: 400px;
+    position: absolute;
+    z-index: $dat-bubble;
+    -webkit-animation-duration: 3s;
+    -webkit-animation-name: datBubble;
+  }
+  &:hover {
+    .dat-sloth {
+      right: 0;
+      bottom: 0;
+    }
+  }
+}

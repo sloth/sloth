@@ -4,6 +4,7 @@
 @import "dependencies/fonts";
 @import "dependencies/colors";
 @import "dependencies/z-index";
+@import "lightbox";
 @import "sidebar";
 @import "chat";
 
@@ -46,6 +47,14 @@ strong {
   font-weight: bold;
 }
 
+button {
+  @include border-radius(7px);
+  background: $sidebar-background;
+  border: 0;
+  color: #fff;
+  font-family: MNT;
+  padding: 10px;
+}
 @include fadeInOpacity(fadeIn,block);
 
 .client {

@@ -98,6 +98,7 @@
 @include fadeInOpacity(fadeInOpa,block);
 
 .sidebar-list {
+  padding-left: 0.5em;
   h3 {
     cursor: pointer;
     padding: 0.4em;
