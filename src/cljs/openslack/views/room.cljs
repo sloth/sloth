@@ -114,7 +114,6 @@
 
     om/IDidMount
     (did-mount [_]
-      ;; TODO: scroll to last read?
       (browser/scroll-to-bottom ".messages-container"))
 
     om/IDidUpdate

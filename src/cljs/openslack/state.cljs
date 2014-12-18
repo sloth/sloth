@@ -1,6 +1,7 @@
 (ns openslack.state
-  (:require [shodan.console :as console :include-macros true]))
-
+  (:require [om.core :as om :include-macros true]
+            [shodan.console :as console :include-macros true]
+            [openslack.browser :as browser]))
 
 ; TODO: schema of state?
 (defn make-initial-state []
@@ -71,27 +72,36 @@
 (declare get-room)
 (declare get-current-room)
 
-(defn- insert-group-message
+(defn clear-room-unread-messages
+  [room]
+  (let [roomname (:local room)]
+    (swap! state
+           (fn [state]
+             (update-in state [:channels (keyword roomname)] assoc :unread 0)))))
+
+(defn insert-group-message
   [message]
   (let [roomname (get-in message [:from :local])
         recipient (get-in message [:from :bare])
         currentroom (get-current-room)]
 
+    (when (and (not (:delay message))
+               (not= (:local currentroom) roomname))
+      (when-let [room (get-room roomname)]
+        ;; (console/log "insert-group-message" roomname (pr-str (keyword roomname)))
+        (swap! state (fn [state]
+                       (update-in state [:channels (keyword roomname) :unread] inc)))))
+
+    ;; Insert message to state
     (swap! state (fn [state]
                    (update-in state [:groupchats recipient] (fnil conj []) message)))))
 
-(defn- insert-private-message
-  [message]
-  (let [recipient (get-in message [:from :bare])]
+(defn insert-private-message
+  [recipient message]
+  (let [recipient (get recipient :bare)]
     ;; Append messages
     (swap! state (fn [state]
                    (update-in state [:chats recipient] (fnil conj []) message)))))
-
-(defn insert-message
-  [message]
-  (condp = (:type message)
-    :chat (insert-private-message message)
-    :groupchat (insert-group-message message)))
 
 (defn join-room
   ;; TODO: rename

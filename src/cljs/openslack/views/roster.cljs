@@ -31,6 +31,7 @@
                             :class-name (when is-current-contact? "highlighted")}
                      availability (:availability presence)
                      status (:status presence)]
+                 (console/log "roster$render" name is-current-contact?)
                  [:li attrs
                   (condp = availability
                     :available [:span.status.online]

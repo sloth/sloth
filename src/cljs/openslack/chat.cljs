@@ -24,8 +24,12 @@
       (xmpp/send-message client {:to recipient
                                  :type :chat
                                  :body message})
-      (st/insert-message {:to user
-                          :from loggeduser
-                          :type :chat
-                          :timestamp (js/Date.)
-                          :body message}))))
+      ;; (console/log "send-personal-message"
+      ;;              (pr-str user)
+      ;;              (pr-str loggeduser))
+
+      (st/insert-private-message user {:to user
+                                       :from loggeduser
+                                       :type :chat
+                                       :timestamp (js/Date.)
+                                       :body message}))))

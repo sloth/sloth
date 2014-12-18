@@ -116,6 +116,7 @@
               presence (st/get-presence state user)
               status (:status presence)
               messages (st/get-contact-messages state user)]
+          (console/log "contact$render" nickname)
           (s/html
            [:section.client-main
             [:header

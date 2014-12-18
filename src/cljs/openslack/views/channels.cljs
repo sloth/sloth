@@ -5,11 +5,40 @@
             [sablono.core :as s :include-macros true]
             [openslack.views.user :refer [user]]))
 
+
+(defn- is-current-chan?
+  [state name]
+  (and (= (get-in state [:page :state]) :room)
+       (= (get-in state [:page :room])  name)))
+
+(defn channel-component
+  [state owner {:keys [channel]}]
+  (reify
+    om/IDisplayName
+    (display-name [_] "channel-item")
+
+    om/IRender
+    (render [_]
+      (let [name (:local channel)
+            hashname (str "#" name)
+            current (is-current-chan? state name)
+            unread (get channel :unread 0)
+            attrs {:on-click #(navigate (room-route {:name name}))
+                   :class-name (cond
+                                (and current (> unread 0)) "highlighted unread"
+                                (> unread 0) "unread"
+                                :else "")}]
+        ;; (console/log "channel$render" name unread)
+        (s/html
+         (if (> unread 0)
+           [:li attrs hashname [:i unread] [:i.close-channel "x"]]
+           [:li attrs hashname [:i.close-channel "x"]]))))))
+
 (defn channels
   [state owner]
   (reify
     om/IDisplayName
-    (display-name [_] "Channels")
+    (display-name [_] "channels")
 
     om/IRender
     (render [_]
@@ -21,16 +50,8 @@
            [:div.room-list.sidebar-list
             [:h3 "Channels"]
             [:ul (for [chan chanlist]
-                   (let [name (:local chan)
-                         is-current-chan? (and (= (get-in state [:page :state]) :room)
-                                               (= (get-in state [:page :room])  name))
-                         unread (:unread chan 0)
-                         attrs {:on-click #(navigate (room-route {:name name}))
-                                :class-name (when is-current-chan? "highlighted")}
-                         hashname (str "#" name)]
-                     (if (> unread 0)
-                       [:li.unread attrs hashname [:i unread] [:i.close-channel "x"]]
-                       [:li attrs hashname [:i unread] [:i.close-channel "x"]])))
+                   (om/build channel-component state {:opts {:channel chan}
+                                                      :key :local}))
              [:li.add
               [:span "+"] "Add new channel\n              "]]]))))))
 

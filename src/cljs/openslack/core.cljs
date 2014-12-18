@@ -49,10 +49,11 @@
   (let [chats (xmpp/chats client)]
     (go-loop []
       (when-let [message (<! chats)]
-        ;; (console/log "message" (pr-str message))
         (browser/notify-if-applies message)
-        (st/insert-message message))
-        (recur))))
+        (condp = (:type message)
+          :chat (st/insert-private-message (:from message) message)
+          :groupchat (st/insert-group-message message))
+        (recur)))))
 
 (defn- start-focus-watcher
   []

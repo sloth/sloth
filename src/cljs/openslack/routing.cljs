@@ -43,7 +43,11 @@
 
 (defroute room-route "/room/:name" [name]
   (if (st/logged-in?)
-    (swap! st/state assoc :page {:state :room, :room name})
+    (swap! st/state
+           (fn [state]
+             (-> state
+                 (assoc :page {:state :room :room name})
+                 (update-in [:channels (keyword name)] assoc :unread 0))))
     (navigate "/login")))
 
 (defroute contact-route "/contact/:name" [name]
