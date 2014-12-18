@@ -72,7 +72,8 @@
 
 
 .login {
-  @include background(linear-gradient(#1B3249, #549AE2) left repeat);
+  background: url(/static/imgs/login/login-background.png);
+  background-size: 100%;
   position: relative;
   height: 600px;
   width: 800px;
@@ -149,9 +150,4 @@
     -webkit-animation-duration: 3s;
     -webkit-animation-name: datBubble;
   }
-}
-
-
-.channel-search {
-  
 }
