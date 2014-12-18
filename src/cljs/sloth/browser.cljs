@@ -37,18 +37,28 @@
     (.play audio)))
 
 (defn notify-if-applies
-  [message]
+  ([message]
+  (let [type (:type message)
+        channel-name (get-in message [:from :local])]
+
+    (condp = type
+      :chat (let [author (str/trim (get-in message [:from :local]))
+                  title author]
+              (notify-if-applies message author title))
+
+      :groupchat (let [author (str/trim (get-in message [:from :resource]))
+                       channel-name (get-in message [:from :local])
+                       title (str author "@" channel-name)]
+                   (notify-if-applies message author title)))))
+
+  ([message author title]
   (go
     (let [username (str/trim (get-in @st/state [:user :local]))
-          author (str/trim (get-in message [:from :resource]))
-          channel-name (get-in message [:from :local])
-          title (str author "@" channel-name)
           body (:body message)]
 
       (when (and (allow-notifications?) (not= username author) (not (st/window-focused?)))
         (play-notification-sound)
-        (notify title body)))))
-
+        (notify title body))))))
 
 (defn listen-focus-events
   ([]
