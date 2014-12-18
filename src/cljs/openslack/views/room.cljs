@@ -60,35 +60,25 @@
 ;; Messages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn message
-  [state owner event]
+(defn message-component
+  [state owner {:keys [message room loggeduser]}]
   (reify
     om/IDisplayName
     (display-name [_] "room-message")
 
-    om/IInitState
-    (init-state [_]
-      ;; TODO: improve matching self messages
-      (let [roomname (get-in state [:page :room])
-            room (st/get-room state roomname)
-            author (get-in event [:from :resource])
+    om/IRender
+    (render [_]
+      (let [author (get-in message [:from :resource])
             loggeduser (:user state)
             classname (if (= author (:local loggeduser))
                         "message self"
-                        "message")]
-
-        {:room room
-         :author (:resource (:from event))
-         :body (enrich-text (:body event))
-         :avatar (:avatar event placeholder-avatar-route)
-         :classname classname}))
-
-    om/IRenderState
-    (render-state [_ {:keys [room author classname avatar body]}]
-      (let [stamp (:timestamp event)
+                        "message")
+            avatar (:avatar message placeholder-avatar-route)
+            body (enrich-text (:body message))
+            stamp (:timestamp message)
             hours (.getHours stamp)
-            mins (.getMinutes stamp)
-            mins (if (< mins 10) (str "0" mins) mins)]
+            mins (let [mins (.getMinutes stamp)]
+                   (if (< mins 10) (str "0" mins) mins))]
         (s/html
          [:div {:class-name classname}
           [:div.message-avatar
@@ -124,6 +114,7 @@
     (render [_]
       (let [roomname (get-in state [:page :room])
             room (st/get-room state roomname)
+            loggeduser (:user state)
             messages (st/get-room-messages state room)]
         (when room
           (s/html
@@ -138,7 +129,9 @@
              [:div.chat-container
               [:div.messages-container
                (for [msg messages]
-                 (om/build message state {:opts msg
+                 (om/build message-component state {:opts {:message msg
+                                                           :room room
+                                                           :loggeduser loggeduser}
                                           :react-key (:id msg)}))]
               (om/build message-input state)]
              [:div.chat-sidebar-holder [:div]]]]))))))
