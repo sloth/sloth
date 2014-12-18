@@ -74,9 +74,9 @@
    [:video {:src url
             :controls true}]])
 
-(def webm-regex #"https?://.*\.webm")
+(def video-regex #"https?://.*\.(?:webm|mp4|ogv)")
 
-(register-enricher! webm-regex make-video-message)
+(register-enricher! video-regex make-video-message)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
