@@ -242,8 +242,7 @@
     (when-let [delay (.-delay rchat)]
       (assoc! chat
               :timestamp (.-stamp delay)
-              :delay (js->clj delay)
-              :delay? true))
+              :delay (js->clj delay)))
     (persistent! chat)))
 
 (defn chats [client]
