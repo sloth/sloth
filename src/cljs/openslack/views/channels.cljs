@@ -29,7 +29,6 @@
                                 (and current (= unread 0)) "highlighted"
                                 (> unread 0) "unread"
                                 :else "")}]
-        ;; (console/log "channel$render" name unread)
         (s/html
          (if (> unread 0)
            [:li attrs hashname [:i unread] [:i.close-channel "x"]]
