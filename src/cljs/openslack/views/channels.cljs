@@ -31,9 +31,10 @@
                                              (= (get-in state [:page :room])  name))
                        unread (:unread chan 0)
                        attrs {:on-click #(navigate (room-route {:name name}))
-                              :class-name (when is-current-chan? "highlighted")}]
+                              :class-name (when is-current-chan? "highlighted")}
+                       hashname (str "#" name)]
                    (if (> unread 0)
-                     [:li.unread attrs name [:i unread] [:i.close-channel "x"]]
-                     [:li attrs name [:i unread] [:i.close-channel "x"]])))
+                     [:li.unread attrs hashname [:i unread] [:i.close-channel "x"]]
+                     [:li attrs hashname [:i unread] [:i.close-channel "x"]])))
            [:li.add
             [:span "+"] "Add new channel\n              "]]])))))
