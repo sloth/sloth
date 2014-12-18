@@ -1,5 +1,6 @@
 (ns openslack.state
-  (:require [shodan.console :as console :include-macros true]))
+  (:require [shodan.console :as console :include-macros true]
+            [openslack.browser :as browser]))
 
 
 ; TODO: schema of state?
@@ -70,6 +71,8 @@
 (defn- insert-group-message
   [from message]
   (let [recipient (get from :bare)]
+
+    (browser/notify-if-applies message)
     (swap! state (fn [state]
                    (update-in state [:groupchats recipient] (fnil conj []) message)))))
 
