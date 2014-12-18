@@ -1,7 +1,7 @@
 (ns openslack.views.text
   (:require [cuerdas.core :as str]
             [openslack.state :as st]
-            [openslack.routing :refer [emoji-route room-route]])
+            [openslack.routing :refer [emoji-route room-route contact-route]])
   (:import [goog Uri]))
 
 (def enrichers (atom []))
@@ -88,6 +88,20 @@
 
 (register-enricher! room-regex room-converter)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Contacts
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def contact-regex #"@\w+")
+(defn contact-converter
+  [contact-name]
+  (let [contact-local (str/ltrim contact-name "@")]
+    ;; TODO: if it's the logged-in users name we may want to do something special
+    (if-let [maybe-contact (st/get-contact @st/state contact-local)]
+      [:a {:href (contact-route {:name contact-local})} contact-name]
+      [:span contact-name])))
+
+(register-enricher! contact-regex contact-converter)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emoji
