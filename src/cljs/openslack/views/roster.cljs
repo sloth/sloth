@@ -38,5 +38,6 @@
                     :dnd [:span.status.busy]
                     [:span.status.offline])
                   name
-                  [:div.read-status status]])
+                  (when status
+                    [:div.read-status status])])
                [:li.add [:span "+"] "Add new contact\n              "])]]))))))
