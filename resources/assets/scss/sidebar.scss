@@ -99,6 +99,9 @@
 
 .sidebar-list {
   padding-left: 0.5em;
+  .status {
+    margin-right: 5px;
+  }
   h3 {
     cursor: pointer;
     padding: 0.4em;
@@ -212,7 +215,8 @@
       font-family: Lato;
       font-size: 10px;
       top: 3px;
-      height: 14px;
+      line-height: 15px;
+      height: 16px;
       width: 14px;
       text-transform: uppercase;
       right: 0.55em;
