@@ -3,7 +3,7 @@
             [clojure.tools.namespace.repl :refer (refresh)]
             [weasel.repl.websocket :refer [repl-env]]
             [cemerick.piggieback :refer [cljs-repl]]
-            [openslack.core :refer [initialize]]))
+            [sloth.core :refer [initialize]]))
 
 
 (def system nil)

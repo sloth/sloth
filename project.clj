@@ -1,4 +1,4 @@
-(defproject openslack "0.1.0-SNAPSHOT"
+(defproject sloth "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "BSD (2-Clause)"
@@ -79,8 +79,8 @@
   :jar-exclusions [#"user.clj"]
   :target-path "target/%s"
   :jvm-opts ["-Dnomad.env=devel"]
-  :profiles {:standalone {:main ^:skip-aot openslack.core}
-             :release {:main ^:skip-aot openslack.core
+  :profiles {:standalone {:main ^:skip-aot sloth.core}
+             :release {:main ^:skip-aot sloth.core
                        :jvm-opts ["-Dnomad.env=release"]}}
   :figwheel {
    :http-server-root "public"

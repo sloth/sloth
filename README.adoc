@@ -1,4 +1,4 @@
-= OpenSlack
+= Sloth
 
 == How to start
 
@@ -10,8 +10,8 @@ Used mainly for serving the index.html in / and for future
 development of XMPP components (only for integrations).
 
 ----
-$ git clone git@github.com:niwibe/openslack.git
-$ cd openslack
+$ git clone git@github.com:niwibe/sloth.git
+$ cd sloth
 $ lein with-profile standalone run
 2014-12-11 13:44:21.803:INFO::main: Logging initialized @4524ms
 2014-12-11 13:44:22.880:INFO:oejs.Server:main: jetty-9.2.5.v20141112
@@ -24,7 +24,7 @@ $ lein with-profile standalone run
 Used for compiling the frontend application.
 
 ----
-$ cd openslack
+$ cd sloth
 $ lein cljsbuild auto devel
 Compiling ClojureScript.
 Compiling "resources/public/js/app.js" from ["src/cljs"]...
@@ -93,7 +93,7 @@ All dependencies and settings for making work browser enabled repl
 are ready, but disabled by default.
 
 For enable it, uncomment the `(ws-repl/connect ...)` on
-_src/cljs/openslack/core.cljs_.
+_src/cljs/sloth/core.cljs_.
 
 And start the browser enabled repl.
 
