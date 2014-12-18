@@ -4,7 +4,7 @@
             [sablono.core :as html :refer-macros [html]]
             [cljs.core.async :refer [<!]]
             [weasel.repl :as ws-repl]
-            [figwheel.client :as fw]
+            ;; [figwheel.client :as fw]
             [openslack.config :as config]
             [openslack.auth :as auth]
             [openslack.routing :refer [start-history!]]
@@ -21,12 +21,6 @@
 
 ;; Enable browser enabled repl.
 (ws-repl/connect "ws://localhost:9001")
-;; (fw/start {
-;;   :websocket-url "ws://localhost:3449/figwheel-ws"
-;;   :on-jsload (fn [] (print "reloaded"))
-;;   :heads-up-display true
-;;   :load-warninged-code false
-;; })
 
 (defn- initialize-roster
   [client]

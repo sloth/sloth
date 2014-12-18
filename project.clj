@@ -60,12 +60,20 @@
                            :source-map true
                            ;; :preamble ["react/react.js"]
                            }}
+
+               {:id "normal"
+                :source-paths ["src/cljs"]
+                :compiler {:output-to "resources/public/js/app.js"
+                           :optimizations :whitespace
+                           :pretty-print false
+                           :externs ["react/externs/react.js"]}}
+
                {:id "release"
                 :source-paths ["src/cljs"]
                 :compiler {:output-to "resources/public/js/app.js"
                            :optimizations :advanced
                            :pretty-print false
-                           :preamble ["react/react.min.js"]
+                           ;; :preamble ["react/react.min.js"]
                            :externs ["react/externs/react.js"]}}]}
 
   :jar-exclusions [#"user.clj"]

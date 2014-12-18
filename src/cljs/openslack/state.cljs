@@ -87,7 +87,6 @@
     (when (and (not (:delay message))
                (not= (:local currentroom) roomname))
       (when-let [room (get-room roomname)]
-        ;; (console/log "insert-group-message" roomname (pr-str (keyword roomname)))
         (swap! state (fn [state]
                        (update-in state [:channels (keyword roomname) :unread] inc)))))
 
