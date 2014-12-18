@@ -1,7 +1,8 @@
 (ns openslack.views.text
   (:require [cuerdas.core :as str]
             [openslack.state :as st]
-            [openslack.routing :refer [emoji-route room-route contact-route navigate]])
+            [openslack.routing :refer [emoji-route room-route contact-route navigate]]
+            [clojure.set :refer [subset?]])
   (:import [goog Uri]))
 
 (def enrichers (atom []))
@@ -84,14 +85,36 @@
 
 (defmethod convert-http-url :www.youtube.com
   [url]
-   (let [uri (Uri. url)]
-     (if-let [video-id (.getParameterValue uri "v")]
-        [:iframe {:width 560
-                  :height 315
-                  :frameborder 0
-                  :allowfullscreen true
-                  :src (str "http://www.youtube.com/embed/" video-id)}]
-        [:a {:href url} url])))
+  (let [uri (Uri. url)]
+    (if-let [video-id (.getParameterValue uri "v")]
+       [:iframe {:width 560
+                 :height 315
+                 :frameborder 0
+                 :allowfullscreen true
+                 :src (str "http://www.youtube.com/embed/" video-id)}]
+       [:a {:href url} url])))
+
+(defmethod convert-http-url :play.spotify.com
+  [url]
+  (let [uri (Uri. url)
+        path (.getPath uri)
+        splitted-path (filter (complement empty?) (str/split path "/"))
+        url-kind (first splitted-path)
+        entity-id (last splitted-path)
+        embed-url (str "https://embed.spotify.com/?uri=spotify:")
+        iframe-attrs {:frameborder 0
+                      :allowtransparency true
+                      :height 80}
+        default-value [:a {:href url} url]]
+    (condp = url-kind
+      "album" [:iframe (assoc iframe-attrs :src (str embed-url "album:" entity-id))]
+      "track" [:iframe (assoc iframe-attrs :src (str embed-url "track:" entity-id))]
+      "user" (if (subset? #{"user" "playlist"} (set splitted-path))
+               (let [username (nth splitted-path 1)
+                     src (str embed-url "user:" username ":playlist:" entity-id)]
+                 [:iframe (assoc iframe-attrs :src src)])
+               default-value)
+      default-value)))
 
 (defmethod convert-http-url :default
   [url]
