@@ -3,7 +3,8 @@
   (:require [openslack.events :as events]
             [openslack.state :as st]
             [secretary.core :as secretary :refer-macros [defroute]])
-  (:import goog.History))
+  (:import [goog History]
+           [goog.history EventType]))
 
 ;; History
 
@@ -20,7 +21,7 @@
   (secretary/set-config! :prefix "#")
   ;; Listen for navigate
   (go
-    (let [event (<! (events/listen history "navigate"))]
+    (let [event (<! (events/listen history EventType.NAVIGATE))]
       (secretary/dispatch! (.-token event))))
   ;; Enable history
   (.setEnabled history true)

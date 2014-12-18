@@ -1,6 +1,7 @@
 (ns openslack.views.text
   (:require [cuerdas.core :as str]
-            [openslack.routing :refer [emoji-route]])
+            [openslack.state :as st]
+            [openslack.routing :refer [emoji-route room-route]])
   (:import [goog Uri]))
 
 (def enrichers (atom []))
@@ -72,6 +73,21 @@
   [:a {:href url} url])
 
 (register-enricher! http-url-regex convert-http-url)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Rooms
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def room-regex #"#\w+")
+(defn room-converter
+  [room-name]
+  (let [room-local (str/ltrim room-name "#")]
+    (if-let [maybe-room (st/get-room @st/state room-local)]
+      [:a {:href (room-route {:name room-local})} room-name]
+      [:span room-name])))
+
+(register-enricher! room-regex room-converter)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emoji
