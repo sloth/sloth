@@ -27,7 +27,7 @@
 ;;   :load-warninged-code false
 ;; })
 
-(defn- start-roster-watcher
+(defn- initialize-roster
   [client]
   (go-loop []
     (let [mroster (<! (xmpp/get-roster client))]
