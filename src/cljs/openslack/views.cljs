@@ -12,7 +12,7 @@
 (defn app [state owner]
   (reify
     om/IDisplayName
-    (display-name [_] "Sloth")
+    (display-name [_] "sloth")
 
     om/IRender
     (render [_]
