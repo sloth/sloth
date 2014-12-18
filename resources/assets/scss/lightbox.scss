@@ -77,14 +77,14 @@
   height: 600px;
   width: 800px;
   .logo {
-    background: url(/static/imgs/logo-letters-down.png);
+    background: url(/static/imgs/logo-letters.png);
     background-size: cover;
-    height: 114px;
+    height: 77px;
     position: absolute;
     left: 50%;
-    top: -62px;
-    margin-left: -70px;
-    width: 140px;
+    top: -40px;
+    margin-left: -150px;
+    width: 300px;
   }
   .login-form {
     @include border-radius(5px);
@@ -134,7 +134,7 @@
     text-align: center;
     width: 300px;
     z-index: $dat-bubble-text;
-    -webkit-animation-duration: 2.5s;
+    -webkit-animation-duration: 3s;
     -webkit-animation-name: datBubble;
   }
   .dat-bubble-arrow {
@@ -143,7 +143,7 @@
     width: 90px;
     height: 90px;
     bottom: 110px;
-    left: 400px;
+    left: 410px;
     position: absolute;
     z-index: $dat-bubble;
     -webkit-animation-duration: 3s;

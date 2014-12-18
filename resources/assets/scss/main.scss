@@ -51,9 +51,13 @@ button {
   @include border-radius(7px);
   background: $sidebar-background;
   border: 0;
+  cursor: pointer;
   color: #fff;
   font-family: MNT;
   padding: 10px;
+  &:hover {
+    background: lighten($sidebar-background, 15%);
+  }
 }
 @include fadeInOpacity(fadeIn,block);
 
