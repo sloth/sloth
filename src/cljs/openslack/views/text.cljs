@@ -32,6 +32,12 @@
 
 (def enrich-text (memoize enrich-text))
 
+(defn make-external-link
+  [url]
+  [:a {:href url
+       :target :blank}
+   url])
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; String manipulation (maybe for cuerdas?)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -47,7 +53,7 @@
 (defn make-image-message
   [url]
   [:span
-   [:a {:href url} url]
+   (make-external-link url)
    [:br]
    [:img {:src url
           :class-name "message-image"}]])
@@ -94,7 +100,7 @@
                  :frameborder 0
                  :allowfullscreen true
                  :src (str "http://www.youtube.com/embed/" video-id)}]
-       [:a {:href url} url])))
+       (make-external-link url))))
 
 (defmethod convert-http-url :play.spotify.com
   [url]
@@ -107,7 +113,7 @@
         iframe-attrs {:frameborder 0
                       :allowtransparency true
                       :height 80}
-        default-value [:a {:href url} url]]
+        default-value (make-external-link url)]
     (condp = url-kind
       "album" [:iframe (assoc iframe-attrs :src (str embed-url "album:" entity-id))]
       "track" [:iframe (assoc iframe-attrs :src (str embed-url "track:" entity-id))]
@@ -120,7 +126,7 @@
 
 (defmethod convert-http-url :default
   [url]
-  [:a {:href url} url])
+  (make-external-link url))
 
 (register-enricher! http-url-regex convert-http-url)
 
