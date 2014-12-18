@@ -98,6 +98,7 @@
   (let [contact-local (str/ltrim contact-name "@")]
     ;; TODO: if it's the logged-in users name we may want to do something special
     (if-let [maybe-contact (st/get-contact @st/state contact-local)]
+      ;; TODO: mention-user class sets background, doesn't look good with links
       [:a {:href (contact-route {:name contact-local})} contact-name]
       [:span contact-name])))
 
