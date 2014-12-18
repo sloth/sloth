@@ -16,6 +16,8 @@
     (render [_]
       (s/html
        [:div.client-sidebar-holder
+        [:audio#notification-sound
+         [:source {:src "/static/sounds/Sloth.ogg" :type "audio/ogg"}]]
         [:div.client-sidebar
          [:div.client-lists
           [:div.logo

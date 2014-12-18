@@ -1,4 +1,5 @@
 (ns openslack.browser
+  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [openslack.state :as st]
             [shodan.console :as console :include-macros true]
             [cuerdas.core :as str]
@@ -30,16 +31,24 @@
         notification (js/Notification. title #js {:body body :icon icon})]
     (js/setTimeout #(.close notification) 3000)))
 
+(defn play-notification-sound
+  []
+  (let [audio (.querySelector js/document "#notification-sound")]
+    (.play audio)))
+
 (defn notify-if-applies
   [message]
-  (let [username (str/trim (get-in @st/state [:user :local]))
-        author (str/trim (get-in message [:from :resource]))
-        channel-name (get-in message [:from :local])
-        title (str author "@" channel-name)
-        body (:body message)]
+  (go
+    (let [username (str/trim (get-in @st/state [:user :local]))
+          author (str/trim (get-in message [:from :resource]))
+          channel-name (get-in message [:from :local])
+          title (str author "@" channel-name)
+          body (:body message)]
 
-    (if (and (allow-notifications?) (not= username author) (not (st/window-focused?)))
-      (notify title body))))
+      (when (and (allow-notifications?) (not= username author) (not (st/window-focused?)))
+        (play-notification-sound)
+        (notify title body)))))
+
 
 (defn listen-focus-events
   ([]
