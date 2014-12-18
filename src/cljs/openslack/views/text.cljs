@@ -82,6 +82,16 @@
         path (str "/media/" gif-id "/giphy.gif")]
     (make-image-message (str domain path))))
 
+(defmethod convert-http-url :www.youtube.com
+  [url]
+   (let [uri (Uri. url)]
+     (if-let [video-id (.getParameterValue uri "v")]
+        [:iframe {:width 560
+                  :height 315
+                  :frameborder 0
+                  :allowfullscreen true
+                  :src (str "http://www.youtube.com/embed/" video-id)}]
+        [:a {:href url} url])))
 
 (defmethod convert-http-url :default
   [url]
