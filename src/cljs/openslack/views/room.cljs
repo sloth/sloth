@@ -135,7 +135,6 @@
               "Le topic del dia: Los "
               [:strong "Sloth"]
               " dominaran el mundo\n        "]]
-            [:hr]
             [:div.chat-zone
              [:div.chat-container
               [:div.messages-container

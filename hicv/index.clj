@@ -17,7 +17,7 @@
         [:h3 "Channels"]
         [:ul
          [:li.unread
-          [:span "#"]
+          [:span.chan "#"]
           "SlothMyMachine"
           [:i "3"]
           [:i.close-channel "x"]]

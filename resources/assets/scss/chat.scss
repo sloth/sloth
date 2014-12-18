@@ -10,7 +10,8 @@
     @include flex-grow(0);
     @include flex-shrink(0);
     @include align-items(center);
-    padding: 1em;
+    box-shadow: 1px 1px 5px rgba(0,0,0,0.2);
+    padding: 1em 1em 1em 2em;
     h1 {
       @include flex-shrink(0);
       font-family: MNT;
@@ -66,8 +67,8 @@
 
 .message {
   @include display(flex);
-  padding-left: 0.5em;
-  margin-left: 0.5em;
+  padding-left: 1em;
+  margin-left: 1em;
   margin-right: 0.5em;
   &.mention {
     background: $mention-user;
@@ -108,17 +109,17 @@
     strong {
       font-family: MNT;
       padding-right: 7px;
-      font-size: 13px;
+      font-size: 14px;
     }
     span {
       font-family: Lato;
-      font-size: 10px;
+      font-size: 11px;
       opacity: 0.7;
       padding-right: 5px;
     }
   }
   .content {
-    font-size: 13px;
+    font-size: 15px;
     padding: 0 0 .1rem 0;
     line-height: 22px;
     strong {
@@ -137,8 +138,8 @@
   @include display(flex);
   @include flex-grow(0);
   @include flex-shrink(0);
-  height: 60px;
-  padding: 1em;
+  height: 36px;
+  padding: 0 2em 1em;
   textarea {
     @include flex-grow(1);
     resize: none;
