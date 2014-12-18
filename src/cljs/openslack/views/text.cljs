@@ -40,13 +40,17 @@
 ;; Images
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def img-regex #"https?://.*\.(?:jpe?g|gif|png)")
-(defn img-converter
+(defn make-image-message
   [url]
-  [:img {:src url
-         :class-name "message-image"}])
+  [:span
+   [:a {:href url} url]
+   [:br]
+   [:img {:src url
+          :class-name "message-image"}]])
 
-(register-enricher! img-regex img-converter)
+(def img-regex #"https?://.*\.(?:jpe?g|gif|png)")
+
+(register-enricher! img-regex make-image-message)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URLs
@@ -61,8 +65,7 @@
 (defmethod convert-http-url "imgur.com"
   [url]
   (let [uri (Uri. url)]
-    [:img {:src (str "http://i.imgur.com" (.getPath uri) ".jpg")
-           :class-name "message-image"}]))
+    (make-image-message (str "http://i.imgur.com" (.getPath uri) ".jpg"))))
 
 (defmethod convert-http-url :default
   [url]
