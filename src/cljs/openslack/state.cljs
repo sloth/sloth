@@ -1,7 +1,6 @@
 (ns openslack.state
   (:require [om.core :as om :include-macros true]
-            [shodan.console :as console :include-macros true]
-            [openslack.browser :as browser]))
+            [shodan.console :as console :include-macros true]))
 
 ; TODO: schema of state?
 (defn make-initial-state []
