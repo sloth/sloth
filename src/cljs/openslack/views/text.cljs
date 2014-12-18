@@ -61,12 +61,18 @@
 
 (defmulti convert-http-url
   (fn [url]
-    (.getDomain (Uri. url))))
+    (keyword (.getDomain (Uri. url)))))
 
-(defmethod convert-http-url "imgur.com"
+(defmethod convert-http-url :imgur.com
   [url]
-  (let [uri (Uri. url)]
-    (make-image-message (str "http://i.imgur.com" (.getPath uri) ".jpg"))))
+  (let [uri (Uri. url)
+        rpath (.getPath uri)
+        domain "http://i.imgur.com"
+        path (if (str/startswith? rpath "/gallery")
+               (str "/" (str/ltrim rpath "/gallery"))
+               rpath)]
+    (make-image-message (str domain path ".jpg"))))
+
 
 (defmethod convert-http-url :default
   [url]
