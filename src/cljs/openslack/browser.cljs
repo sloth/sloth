@@ -1,7 +1,8 @@
 (ns openslack.browser
   (:require [openslack.state :as st]
             [shodan.console :as console :include-macros true]
-            [cuerdas.core :as str]))
+            [cuerdas.core :as str]
+            [cljs.core.async :as async :refer [put! chan]]))
 
 (defn allow-notifications?
   []
@@ -37,5 +38,13 @@
         title (str author "@" channel-name)
         body (:body message)]
 
-    (if (and (allow-notifications?) (not= username author))
+    (if (and (allow-notifications?) (not= username author) (not (st/window-focused?)))
       (notify title body))))
+
+(defn listen-focus-events
+  ([]
+   (listen-focus-events (chan)))
+  ([channel]
+   (set! (.-onfocus js/window) (fn [e] (put! channel :focus)))
+   (set! (.-onblur js/window) (fn [e] (put! channel :blur)))
+   channel))

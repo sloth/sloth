@@ -1,6 +1,5 @@
 (ns openslack.state
-  (:require [shodan.console :as console :include-macros true]
-            [openslack.browser :as browser]))
+  (:require [shodan.console :as console :include-macros true]))
 
 
 ; TODO: schema of state?
@@ -12,6 +11,7 @@
    :roster {}
    :presence {}
    :subscriptions []
+   :window-focus :focus
    ;; :subscriptions [{:type :room
    ;;                  :from {:jid "niwi@niwi.be"
    ;;                         :local "niwi"}
@@ -77,20 +77,6 @@
         recipient (get-in message [:from :bare])
         currentroom (get-current-room)]
 
-    (browser/notify-if-applies message)
-
-    ;; (when (not= (:local currentroom)
-    ;;             (:local roomname))
-    ;;   (when-let [room (get-room roomname)]
-    ;;     (console/log "KAKA1" (pr-str roomname))
-    ;;     (console/log "KAKA2" (pr-str room))
-    ;;     (swap! state update-in [:channels (keyword roomname) :unread] inc)))
-
-    ;; (console/log "insert-group-message"
-    ;;              (pr-str currentroom)
-    ;;              (pr-str from))
-
-    ;; Insert message to state
     (swap! state (fn [state]
                    (update-in state [:groupchats recipient] (fnil conj []) message)))))
 
@@ -167,3 +153,7 @@
   [state user]
   (let [useraddress (:bare user)]
     (get-in state [:chats useraddress])))
+
+(defn window-focused?
+  []
+  (= :focus (:window-focus @state)))

@@ -11,6 +11,7 @@
             [openslack.state :as st]
             [openslack.xmpp :as xmpp]
             [openslack.views :as views]
+            [openslack.browser :as browser]
             [hodgepodge.core :refer [local-storage]]
             [shodan.console :as console :include-macros true]
             [cats.core :as m]
@@ -49,8 +50,17 @@
     (go-loop []
       (when-let [message (<! chats)]
         ;; (console/log "message" (pr-str message))
+        (browser/notify-if-applies message)
         (st/insert-message message))
         (recur))))
+
+(defn- start-focus-watcher
+  []
+  (let [events (browser/listen-focus-events)]
+    (go-loop []
+      (when-let [event (<! events)]
+        (swap! st/state assoc :window-focus event)
+        (recur)))))
 
 (defn- start-raw-packets-watcher
   [client]
@@ -86,6 +96,7 @@
       (initialize-roster client)
       (start-presence-watcher client)
       (start-chat-watcher client)
+      (start-focus-watcher)
 
       ;; Join existing rooms
       ;; (let [nickname (:local (:user state))]
@@ -120,7 +131,7 @@
   (add-watch st/state :persistence
              (fn [_ _ oldval newval]
                (let [state (dissoc newval :client :user :roster :presence :chats :groupchats
-                                   :features :page :conversations)]
+                                   :features :page :conversations :window-focus)]
                  (assoc! local-storage :state state)))))
 
 (defn main
