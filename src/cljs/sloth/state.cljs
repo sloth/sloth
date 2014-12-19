@@ -62,14 +62,18 @@
                      (assoc :user user)
                      (assoc :auth auth)))))
 
-(defn add-chat
-  [app-state chat]
-  (let [type (:type chat)
-        from (get-in chat [:from :bare])]
-    (update-in app-state [ type from] (fnil conj []) chat)))
+(defn get-room
+  ([name] (get-room @state name))
+  ([state name]
+   (let [channels (:channels state)
+         name (keyword name)]
+     (get channels name))))
 
-(declare get-room)
-(declare get-current-room)
+(defn get-current-room
+  ([] (get-current-room @state))
+  ([state]
+   (when-let [roomname (get-in state [:page :room])]
+     (get-room state roomname))))
 
 (defn clear-room-unread-messages
   [room]
@@ -128,19 +132,6 @@
   ([state user]
    (let [useraddress (get-in user [:full])]
      (get-in state [:presence useraddress]))))
-
-(defn get-room
-  ([name] (get-room @state name))
-  ([state name]
-   (let [channels (:channels state)
-         name (keyword name)]
-     (get channels name))))
-
-(defn get-current-room
-  ([] (get-current-room @state))
-  ([state]
-   (when-let [roomname (get-in state [:page :room])]
-     (get-room state roomname))))
 
 (defn update-roster
   [roster]

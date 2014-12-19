@@ -132,7 +132,6 @@
                           :auth {:username username
                                  :password password}}))))))
 ;; Roster
-
 (defn raw-roster->roster
   [rroster]
   (let [transformfn (fn [rosteritem]

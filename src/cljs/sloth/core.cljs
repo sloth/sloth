@@ -124,7 +124,8 @@
   []
   (add-watch st/state :persistence
              (fn [_ _ oldval newval]
-               (let [state (dissoc newval :client :user :roster :presence :chats :groupchats
+               (let [state (dissoc newval
+                                   :client :user :roster :presence :chats :groupchats
                                    :features :page :conversations :window-focus)]
                  (assoc! local-storage :state state)))))
 
@@ -135,7 +136,6 @@
   (start-state-persistence)
 
   ;; Restore previously stored state
-  ;; (println 11111 (pr-str (:state local-storage nil)))
   (if-let [storedstate (:state local-storage nil)]
     (st/set-initial-state storedstate)
     (st/set-initial-state))

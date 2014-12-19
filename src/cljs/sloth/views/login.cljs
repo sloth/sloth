@@ -48,14 +48,14 @@
                          :on-change (fn [ev]
                                       (om/set-state! owner (assoc state :username (.-value (.-target ev)))))
                          :default-value (:username state)}]
-                [:input {:type "password"
-                         :placeholder "Password"
-                         :on-change (fn [ev]
+                 [:input {:type "password"
+                          :placeholder "Password"
+                          :on-change (fn [ev]
                                       (om/set-state! owner (assoc state :password (.-value (.-target ev)))))
-                         :default-value (:password state)}]
-                [:button {:on-click (fn [ev]
-                                      (.preventDefault ev)
-                                      (do-login owner state))} "Login"]]]
+                          :default-value (:password state)}]
+                 [:button {:on-click (fn [ev]
+                                       (.preventDefault ev)
+                                       (do-login owner state))} "Login"]]]
                [:div.dat-sloth]
                [:div.dat-text "Open source team communication plataform"]
                [:div.dat-bubble-arrow]]]

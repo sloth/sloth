@@ -19,13 +19,16 @@
   []
   ;; Config routing
   (secretary/set-config! :prefix "#")
+
   ;; Listen for navigate and hash changes
   (let [event-chan (events/listen history EventType.NAVIGATE)]
     (go
       (let [event (<! event-chan)]
         (secretary/dispatch! (.-token event)))))
+
   ;; Enable history
   (.setEnabled history true)
+
   ;; Dispacth initial route
   (secretary/dispatch! (.getToken history)))
 
