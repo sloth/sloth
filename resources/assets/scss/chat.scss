@@ -153,3 +153,67 @@
 .message-image, video {
    max-width: 500px;
 }
+
+
+.sloth-main {
+  @include display(flex);
+  @include align-items(center);
+  @include justify-content(center);
+  color: #0D2949;
+  height: 100vh;
+  max-height: 100%;
+  overflow: auto;
+  padding: 0 50px;
+  .sloth-overflow {
+    @include display(flex);
+    @include align-items(center);
+    @include flex-direction(column);
+    margin: 0 auto;
+  }
+  .sloth-presentation {
+    @include display(flex);
+    @include align-items(center);
+    position: relative;
+  }
+  .bubble {
+    @include border-radius(50px);
+    background: #fff;
+    color: #000;
+    font-size: 35px;
+    font-family: Lato;
+    position: absolute;
+    bottom: 50px;
+    padding: 30px;
+    left: 50px;
+    text-align: center;
+    width: 300px;
+    z-index: $dat-bubble-text;
+    -webkit-animation-duration: 3s;
+    -webkit-animation-name: datBubble;
+  }
+  h1 {
+    font-weight: bold;
+    font-size: 46px;
+    padding-bottom: 15px;
+  }
+  h2 {
+    font-size: 32px;
+    padding-bottom: 20px;
+  }
+  img {
+    @include flex-grow(0);
+    @include flex-shrink(0);
+    height: 300px;
+    text-align: right;
+    margin-left: 100px;
+    width: 300px;
+  }
+  p {
+    color: #0D2949;
+    font-size: 16px;
+    margin-bottom: 10px;
+    &.last {
+      font-size: 18px;
+    }
+  }
+}
