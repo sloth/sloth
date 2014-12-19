@@ -51,12 +51,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn make-image-message
-  [url]
-  [:span
-   (make-external-link url)
-   [:br]
-   [:img {:src url
-          :class-name "message-image"}]])
+  ([url]
+   (make-image-message url url))
+  ([url image-url]
+   [:span
+    (make-external-link url)
+    [:br]
+    [:img {:src image-url
+           :class-name "message-image"}]]))
 
 (def img-regex #"https?://.*\.(?:jpe?g|gif|png)")
 
@@ -155,7 +157,7 @@
             coords-attr (str "center=" coords)
             mark-attr (str "&markers=color:red|label:A|" coords)
             maps-static-url (str embed-url coords-attr mark-attr additional-attrs)]
-        (make-image-message maps-static-url))
+        (make-image-message url maps-static-url))
       (make-external-link url))))
 
 (defmethod convert-http-url :default
