@@ -3,6 +3,7 @@
   (:require [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
             [cljs.core.async :refer [<!]]
+            [sloth.state :as st]
             [sloth.auth :as auth]
             [sloth.state :as st]
             [sloth.xmpp :as xmpp]
@@ -16,7 +17,16 @@
     (let [msession (<! (auth/authenticate username password))]
       (cond
        (either/right? msession)
-       (routing/navigate "")
+       (do
+
+         (swap! st/state :channels {:sloth {:local "sloth"
+                                            :bare "sloth@conference.niwi.be"
+                                            :unread 0}
+                                    :testroom {:local "testroom"
+                                               :bare "testroom@conference.niwi.be"
+                                               :unread 0}})
+
+         (routing/navigate ""))
 
        (either/left? msession)
        (let [state (om/get-state owner)]
@@ -26,7 +36,7 @@
   [_ owner]
   (reify
     om/IDisplayName
-    (display-name [_] "Login")
+    (display-name [_] "login")
 
     om/IInitState
     (init-state [_]
