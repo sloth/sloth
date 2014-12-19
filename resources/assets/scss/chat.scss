@@ -277,7 +277,6 @@
   img {
     @include flex-grow(0);
     @include flex-shrink(0);
-    height: 300px;
     text-align: right;
     margin-left: 100px;
     width: 300px;
