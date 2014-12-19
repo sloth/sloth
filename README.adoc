@@ -6,8 +6,7 @@ First of all, install link:http://leiningen.org/[leiningen].
 
 === Backend
 
-Used mainly for serving the index.html in / and for future
-development of XMPP components (only for integrations).
+Used mainly for serving the index.html in /.
 
 ----
 $ git clone git@github.com:niwibe/sloth.git
@@ -30,11 +29,10 @@ Compiling ClojureScript.
 Compiling "resources/public/js/app.js" from ["src/cljs"]...
 ----
 
-If you want to develop interactively, use figwheel instead:
+You can use `normal` build id (instead of `devel`) for build with in 
+`:whitespace` optimization instead of `:none`. That increases compilation 
+times but improves page load speed.
 
-----
-$ lein figwheel
-----
 
 === Frontend development dependencies
 
@@ -125,7 +123,25 @@ For generating the hiccup equivalent of the HTML template, run the following com
 $ lein hicv 2clj resources/public/sandbox/index.html
 ----
 
+=== Packaging as node-webkit application.
+
+The sloth application can run as standalone application in node-webkit environment.
+For create a node-webkit package, execute:
+
+----
+$ gulp package
+----
+
+That will generate a sloth-x.y.z.nw file in target directory. You can run the application
+executing it with `nw`:
+
+----
+$ nw target/sloth-0.1.0.nw
+----
+
 === Setup XMPP server (ejabberd)
+
+This step is only necessary if you want to have local jabber server.
 
 Install ejabberd using your package manager. In case of Archlinux execute as root:
 
