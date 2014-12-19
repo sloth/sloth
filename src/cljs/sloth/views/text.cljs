@@ -160,6 +160,17 @@
         (make-image-message url maps-static-url))
       (make-external-link url))))
 
+;; http://www.youporn.com/watch/10522821/pirate-of-the-caribbean-trailer/?from=vbwn
+(defmethod convert-http-url :www.youporn.com
+  [url]
+  [:span
+   [:a {:href "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        :target :blank}
+    url]
+   [:br]
+   [:img {:src "/static/imgs/yp.png"
+          :class-name "message-image"}]])
+
 (defmethod convert-http-url :default
   [url]
   (make-external-link url))
