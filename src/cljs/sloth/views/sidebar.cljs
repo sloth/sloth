@@ -17,11 +17,11 @@
       (s/html
        [:div.client-sidebar-holder
         [:audio#notification-sound
-         [:source {:src "/static/sounds/Sloth.ogg" :type "audio/ogg"}]]
+         [:source {:src "static/sounds/Sloth.ogg" :type "audio/ogg"}]]
         [:div.client-sidebar
          [:div.client-lists
           [:div.logo
-           [:img {:alt "Sloth logo", :width "100%", :src "/static/imgs/logo.png"}]]
+           [:img {:alt "Sloth logo", :width "100%", :src "static/imgs/logo.png"}]]
           (om/build channels state)
           [:hr]
           (om/build subscriptions state)

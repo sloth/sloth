@@ -8,7 +8,9 @@ var gulp = require("gulp"),
     wrap = require("gulp-wrap"),
     template = require("gulp-template"),
     del = require("del"),
-    runSequence = require("run-sequence");
+    runSequence = require("run-sequence"),
+    zip = require('gulp-zip'),
+    pkg = require('./package.json');
 
 var paths = {};
 paths.dist = "resources/public/";
@@ -37,18 +39,6 @@ gulp.task("js", function() {
         .pipe(gulp.dest(paths.dist + "js/"));
 });
 
-gulp.task("copy-fonts", function() {
-    return gulp.src(paths.fonts)
-        .pipe(gulp.dest(paths.dist + "fonts/"));
-});
-
-gulp.task("copy-images", function() {
-    return gulp.src(paths.images)
-        .pipe(gulp.dest(paths.dist + "images/"));
-});
-
-gulp.task("copy", ["copy-fonts", "copy-images"]);
-
 gulp.task("watch", function() {
     gulp.watch(paths.scss, ["styles"]);
     gulp.watch(paths.js, ["js"]);
@@ -65,10 +55,6 @@ gulp.task("serve", function(){
     app.use("/sandbox", express.static(resources + "sandbox/"));
     app.use("/static", express.static(resources + "public/"));
 
-    // app.all("/*", function(req, res, next){
-    //     res.sendFile("index.html", {root: resources});
-    // });
-
     app.all("/debug/*", function(req, res, next){
         res.sendFile("index.debug.html", {root: resources});
     });
@@ -79,6 +65,64 @@ gulp.task("serve", function(){
 
     app.listen(9000);
 });
+
+gulp.task("clean:target", function(cb) {
+    del("target/nw/**/*", cb);
+})
+
+gulp.task("copy:fonts", function() {
+    return gulp.src("resources/assets/fonts/*")
+        .pipe(gulp.dest("target/nw/static/fonts/"));
+});
+
+gulp.task("copy:images", function() {
+    return gulp.src("resources/assets/imgs/**/*")
+        .pipe(gulp.dest("target/nw/static/imgs/"));
+});
+
+gulp.task("copy:app", function() {
+    return gulp.src("resources/public/js/app.js")
+        .pipe(gulp.dest("target/nw/static/js/"));
+});
+
+gulp.task("copy:vendor", function() {
+    return gulp.src("resources/public/js/vendor.js")
+        .pipe(gulp.dest("target/nw/static/js/"));
+});
+
+gulp.task("copy:html", function() {
+    return gulp.src("resources/index.nw.html")
+        .pipe(rename("index.html"))
+        .pipe(gulp.dest("target/nw/"));
+});
+
+gulp.task("copy:packagejson", function() {
+    return gulp.src("package.nw.json")
+        .pipe(rename("package.json"))
+        .pipe(gulp.dest("target/nw/"));
+});
+
+gulp.task("copy:styles", function() {
+    return gulp.src("resources/public/styles/main.css")
+        .pipe(gulp.dest("target/nw/static/styles/"));
+});
+
+gulp.task("copy", ["copy:fonts", "copy:images", "copy:app",
+                   "copy:vendor", "copy:html", "copy:styles", "copy:packagejson"]);
+
+gulp.task("nw:prepare", function(cb) {
+    runSequence("styles", "js", "clean:target", "copy", cb);
+});
+
+gulp.task("nw:package", function(cb) {
+    return gulp.src("target/nw/**/*")
+        .pipe(zip("sloth-" + pkg.version + ".nw"))
+        .pipe(gulp.dest("target/"));
+});
+
+gulp.task("package", function(cb) {
+    runSequence("nw:prepare", "nw:package");
+})
 
 gulp.task("default", [
     "styles",

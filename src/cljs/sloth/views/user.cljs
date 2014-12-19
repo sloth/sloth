@@ -26,7 +26,7 @@
              {:height "50",
               :width "50",
               :alt "#user",
-              :src "/static/imgs/placerholder-avatar-1.jpg"}]
+              :src "static/imgs/placerholder-avatar-1.jpg"}]
             [:div.square
              [:div.row [:h2 (:local jid)]]
              (let [availability (:availability presence :available)

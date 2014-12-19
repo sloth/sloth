@@ -1,0 +1,12 @@
+{
+  "name": "sloth",
+  "version": "0.1.0",
+  "description": "",
+  "author": "Andrey Antukh, Alejandro Gomez, Miguel de la Cruz",
+  "main": "index.html",
+  "window": {
+    "toolbar": false,
+    "width": 800,
+    "height": 600
+  }
+}

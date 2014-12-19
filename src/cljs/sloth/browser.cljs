@@ -27,7 +27,7 @@
 
 (defn notify
   [title body]
-  (let [icon "/static/imgs/placerholder-avatar-1.jpg"
+  (let [icon "static/imgs/placerholder-avatar-1.jpg"
         notification (js/Notification. title #js {:body body :icon icon})]
     (js/setTimeout #(.close notification) 3000)))
 

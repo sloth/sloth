@@ -70,10 +70,10 @@
 
 (defn emoji-route
   [emoji]
-  (str  "/static/imgs/emoji/" emoji ".png"))
+  (str  "static/imgs/emoji/" emoji ".png"))
 
-(def placeholder-avatar-route "/static/imgs/placeholder-avatar.png")
+(def placeholder-avatar-route "static/imgs/placeholder-avatar.png")
 
 (defn static-image-route
   [image]
-  (str "/static/imgs/" image))
+  (str "static/imgs/" image))
