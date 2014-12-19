@@ -20,7 +20,6 @@
     om/IRender
     (render [_]
       (let [name (:local channel)
-            hashname (str "#" name)
             current (is-current-chan? state name)
             unread (get channel :unread 0)
             attrs {:on-click #(navigate (room-route {:name name}))
@@ -31,8 +30,8 @@
                                 :else "")}]
         (s/html
          (if (> unread 0)
-           [:li attrs hashname [:i unread] [:i.close-channel "x"]]
-           [:li attrs hashname [:i.close-channel "x"]]))))))
+           [:li attrs [:span "#"] name [:i unread] [:i.close-channel "x"]]
+           [:li attrs [:span "#"] name [:i.close-channel "x"]]))))))
 
 (defn channels
   [state owner]
