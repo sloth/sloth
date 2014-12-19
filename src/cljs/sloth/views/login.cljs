@@ -36,9 +36,6 @@
 
     om/IRenderState
     (render-state [_ state]
-
-
-
       (html [:div.lightbox-shadow
              [:div.lightbox
               [:div.login

@@ -4,10 +4,9 @@
             [sloth.state :as st]
             [sloth.views.login :refer [login]]
             [sloth.views.sidebar :refer [sidebar]]
+            [sloth.views.home :refer [home]]
             [sloth.views.room :refer [room]]
             [sloth.views.contact :refer [contact]]))
-
-(def home [:section.client-main])
 
 (defn app [state owner]
   (reify
@@ -20,7 +19,7 @@
               :login (om/build login state)
               :home [:section#app.client
                      [:div.client-sidebar-holder (om/build sidebar state)]
-                     home]
+                     (om/build home state)]
               :room (let [room-name (get-in state [:page :room])
                           r (st/get-room @st/state room-name)]
                       [:section#app.client
@@ -29,5 +28,6 @@
               :contact (let [contact-name (get-in state [:page :contact])]
                          [:section#app.client
                           [:div.client-sidebar-holder (om/build sidebar state)]
-                          (om/build contact state)])
+                          (om/build contact state)
+                          ])
               nil)))))
