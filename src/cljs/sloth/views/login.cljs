@@ -3,7 +3,6 @@
   (:require [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
             [cljs.core.async :refer [<!]]
-            [sloth.state :as st]
             [sloth.auth :as auth]
             [sloth.state :as st]
             [sloth.xmpp :as xmpp]
