@@ -20,7 +20,7 @@
 (enable-console-print!)
 
 ;; Enable browser enabled repl.
-(ws-repl/connect "ws://localhost:9001")
+;;(ws-repl/connect "ws://localhost:9001")
 
 (defn- initialize-roster
   [client]
@@ -39,7 +39,6 @@
 
 (defn- start-chat-watcher
   [client]
-  ;; Chat updating process
   (let [chats (xmpp/chats client)]
     (go-loop []
       (when-let [message (<! chats)]
@@ -102,7 +101,7 @@
 
       ;; Force join room
       (<! (xmpp/join-room client "sloth@conference.niwi.be" (:local (:user @st/state))))
-      (<! (xmpp/join-room client "testroom@conference.niwi.be" (:local (:user @st/state))))
+      (<! (xmpp/join-room client "demo@conference.niwi.be" (:local (:user @st/state))))
       )))
 
 (defn mount-root-component
