@@ -141,6 +141,26 @@
                default-value)
       default-value)))
 
+(defmethod convert-http-url :www.google.es
+  [url]
+  (let [uri (Uri. url)
+        path (.getPath uri)
+        splitted-path (filter (complement empty?) (str/split path "/"))
+        url-category (keyword (first splitted-path))]
+
+    (.log js/console "--- MAPA ---")
+    (.log js/console (str url-caterogy))
+    (if (= url-category :maps)
+      (let [embed-url (str "https://maps.googleapis.com/maps/api/staticmap?")
+            additional-attrs (str "&zoom=15&size=600x300")
+            coords (str/join "," (subvec (str/split (nth (str/split uri "@") 1) ",") 0 2))
+            coords-attr (str "center=" coords)
+            mark-attr (str "&markers=color:red|label:A|" coords)
+            maps-static-url (str embed-url coords-attr mark-attr additional-attrs)]
+        (.log js/console "--- DE VERDAD ---")
+        (make-image-message maps-static-url))
+      (make-external-link url))))
+
 (defmethod convert-http-url :default
   [url]
   (make-external-link url))
