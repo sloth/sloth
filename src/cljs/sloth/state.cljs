@@ -24,7 +24,12 @@
    ;;                  :from {:jid "ramiro@niwi.be"
    ;;                         :local "ramiro"}
    ;;                  :room {:name "anime"}}]
-   :channels {}
+   :channels {:sloth {:local "sloth"
+                      :bare "sloth@conference.niwi.be"
+                      :unread 0}
+              :testroom {:local "testroom"
+                         :bare "testroom@conference.niwi.be"
+                         :unread 0}}
    :chats {}
    :groupchats {}})
 

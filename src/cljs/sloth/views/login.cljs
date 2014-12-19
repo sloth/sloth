@@ -16,16 +16,7 @@
     (let [msession (<! (auth/authenticate username password))]
       (cond
        (either/right? msession)
-       (do
-
-         (swap! st/state :channels {:sloth {:local "sloth"
-                                            :bare "sloth@conference.niwi.be"
-                                            :unread 0}
-                                    :testroom {:local "testroom"
-                                               :bare "testroom@conference.niwi.be"
-                                               :unread 0}})
-
-         (routing/navigate ""))
+       (routing/navigate "")
 
        (either/left? msession)
        (let [state (om/get-state owner)]
@@ -35,7 +26,7 @@
   [_ owner]
   (reify
     om/IDisplayName
-    (display-name [_] "login")
+    (display-name [_] "Login")
 
     om/IInitState
     (init-state [_]
