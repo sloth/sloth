@@ -30,28 +30,37 @@
 
     om/IInitState
     (init-state [_]
-      {:username "kim@niwi.be"
-       :password "korea"
+      {:username ""
+       :password ""
        :error ""})
 
     om/IRenderState
     (render-state [_ state]
-      (html [:form
-              [:label "Username"]
-              [:input {:type "text"
-                       :placeholder "you@server.com"
-                       :on-change (fn [ev]
-                                    (om/set-state! owner (assoc state :username (.-value (.-target ev)))))
-                       :default-value (:username state)}]
-              [:label "Password"]
-              [:input {:type "password"
-                       :on-change (fn [ev]
-                                    (om/set-state! owner (assoc state :password (.-value (.-target ev)))))
-                       :default-value (:password state)}]
-              [:input {:type "button"
-                       :value "Log in"
-                       :on-click (fn [ev]
-                                   (.preventDefault ev)
-                                   (do-login owner state))}]
+
+
+
+      (html [:div.lightbox-shadow
+             [:div.lightbox
+              [:div.login
+               [:div.login-form
+                [:div.logo]
+                [:form
+                 [:input {:type "text"
+                         :placeholder "Login"
+                         :autocomplete "off"
+                         :on-change (fn [ev]
+                                      (om/set-state! owner (assoc state :username (.-value (.-target ev)))))
+                         :default-value (:username state)}]
+                [:input {:type "password"
+                         :placeholder "Password"
+                         :on-change (fn [ev]
+                                      (om/set-state! owner (assoc state :password (.-value (.-target ev)))))
+                         :default-value (:password state)}]
+                [:button {:on-click (fn [ev]
+                                      (.preventDefault ev)
+                                      (do-login owner state))} "Login"]]]
+               [:div.dat-sloth]
+               [:div.dat-text "Open source team communication plataform"]
+               [:div.dat-bubble-arrow]]]
              (when (:error state)
                [:p (:error state)])]))))
