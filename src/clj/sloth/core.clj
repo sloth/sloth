@@ -1,29 +1,26 @@
 (ns sloth.core
-  (:require [com.stuartsierra.component :as component]
-            [clojure.core.async :refer [chan <!!]]
-            [sloth.config :refer [configuration]]
-            [sloth.web :refer [web]]
-            [sloth.bots :as bots])
+  (:require [clojure.java.io :as io]
+            [compojure.core :refer :all]
+            [compojure.route :as route]
+            [compojure.response :refer [render]]
+            [qbits.jet.server :refer [run-jetty]])
   (:gen-class))
 
-(defn make-system
-  "Sloth system constructor."
-  []
-  (-> (component/system-map
-       :config (configuration)
-       :web (web)
-       :slothbot (bots/sloth))
-      (component/system-using
-       {:web [:config]
-        :slothbot [:config]})))
+(defn- home-ctrl
+  [request]
+  (let [page (io/resource "index.release.html")]
+    (render page request)))
 
-(defn initialize
+(defn- make-routes
   []
-  (component/start (make-system)))
+  (routes
+   (GET "/" [] home-ctrl)
+   (route/resources "/static")
+   (route/not-found "<h1>Page not found</h1>")))
 
 (defn -main
   [& args]
-  (let [lock (chan 1)
-        sys (initialize)]
-    (<!! lock)
-    (component/stop sys)))
+  (let [handler (make-routes)]
+    (run-jetty {:ring-handler handler
+                :port 5050
+                :join? true})))

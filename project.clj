@@ -8,30 +8,13 @@
                  [org.clojure/tools.namespace "0.2.7"]
 
                  ;; Backend dependencies
-                 [jarohen/nomad "0.7.0"]
-                 [hiccup "1.0.5"]
                  [compojure "1.3.1"]
-                 [com.stuartsierra/component "0.2.2"]
                  [ring/ring-core "1.3.2" :exclusions [javax.servlet/servlet-api
                                                       org.clojure/tools.reader]]
-                 [buddy "0.2.3"]
-                 [potemkin "0.3.11"]
                  [cc.qbits/jet "0.5.1"]
                  [com.cemerick/piggieback "0.1.3"]
                  [weasel "0.4.2"]
                  [figwheel "0.1.7-SNAPSHOT"]
-
-                 ;; XMPP components
-
-                 [rocks.xmpp/xmpp-core "0.4.0"]
-                 [rocks.xmpp/xmpp-core-client "0.4.0"]
-                 [rocks.xmpp/xmpp-extensions "0.4.0"]
-                 [rocks.xmpp/xmpp-extensions-client "0.4.0"]
-                 [rocks.xmpp/xmpp-debug "0.4.0"]
-
-                 [org.apache.commons/commons-lang3 "3.3.2"]
-
-                 [clj-time "0.8.0"]
 
                  ;; Frontend dependencies
                  [org.clojure/clojurescript "0.0-2496"]
@@ -75,10 +58,7 @@
 
   :jar-exclusions [#"user.clj"]
   :target-path "target/%s"
-  :jvm-opts ["-Dnomad.env=devel"]
-  :profiles {:standalone {:main ^:skip-aot sloth.core}
-             :release {:main ^:skip-aot sloth.core
-                       :jvm-opts ["-Dnomad.env=release"]}}
+  :profiles {:standalone {:main ^:skip-aot sloth.core}}
   :figwheel {
    :http-server-root "public"
    :server-port 3449
