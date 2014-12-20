@@ -53,6 +53,8 @@ gulp.task("serve", function(){
         resources = __dirname + "/resources/";
 
     app.use("/sandbox", express.static(resources + "sandbox/"));
+    app.use("/debug/static", express.static(resources + "public/"));
+    app.use("/release/static", express.static(resources + "public/"));
     app.use("/static", express.static(resources + "public/"));
 
     app.all("/debug/*", function(req, res, next){
