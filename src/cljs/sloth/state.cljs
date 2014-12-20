@@ -7,6 +7,7 @@
   {:page {:state :login}
    :client nil
    :user nil
+   :user-presence {}
    :features []
    :roster {}
    :presence {}
@@ -116,22 +117,24 @@
   [app-state presence]
   (if (and (= (get-in app-state [:user :resource])
               (get-in presence [:from :resource])))
-    (assoc-in app-state [:presence (get-in presence [:from :bare])] {:availability (:type presence)
-                                                                     :status (:status presence)})
+    (assoc app-state :user-presence {:availability (:type presence) :status (:status presence)})
     app-state))
 
 (defn update-presence
   [app-state presence]
-  (if (and (= (get-in app-state [:user :local])
-              (get-in presence [:from :local])))
+  (if (and (= (get-in app-state [:user :bare])
+              (get-in presence [:from :bare])))
     (update-own-presence app-state presence)
     (assoc-in app-state [:presence (get-in presence [:from :bare])] {:availability (:type presence)
                                                                      :status (:status presence)})))
+
 (defn get-presence
   ([user] (get-presence @state user))
   ([state user]
-   (let [useraddress (get-in user [:full])]
-     (get-in state [:presence useraddress]))))
+   (let [useraddress (:bare user)]
+     (if (= useraddress (:bare (:user state)))
+       (:user-presence state)
+       (get-in state [:presence useraddress])))))
 
 (defn update-roster
   [roster]

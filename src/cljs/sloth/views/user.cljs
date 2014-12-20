@@ -1,6 +1,9 @@
 (ns sloth.views.user
   (:require [om.core :as om :include-macros true]
             [sablono.core :as s :include-macros true]
+            [cuerdas.core :as str]
+            [sloth.events :as events]
+            [sloth.chat :as chat]
             [sloth.state :as st]))
 
 (def availability->default-status
@@ -9,16 +12,57 @@
    :dnd "Busy"
    :xa "Busy"})
 
+(defn default-status?
+  [status]
+  (let [default-statuses (set (vals availability->default-status))]
+    (default-statuses status)))
+
+(defn- clean-status
+  [raw-status]
+  (-> raw-status
+      str/strip-tags
+      str/trim))
+
+(defn on-blur
+  [state event]
+  (let [target (.-target event)
+        status-text (clean-status (.-innerHTML target))]
+    (if-not (and (str/empty? status-text)
+                 (default-status? status-text))
+      (chat/set-status state status-text)
+      (let [availability (get-in state [:user-presence :availability])
+            default-status (availability->default-status availability)]
+        (chat/set-status state "")
+        (set! (.-innerHTML target) default-status)))))
+
+(defn on-enter
+  [state event]
+  (let [target (.-target event)
+        status-text (clean-status (.-innerHTML target))]
+    (.blur target)))
+
+(defn on-click
+  [state event]
+  (let [target (.-target event)
+        status (clean-status (.-innerHTML target))]
+    (when (default-status? status)
+      (set! (.-innerHTML target) ""))))
+
+(defn on-key-up
+  [state event]
+  (when (events/pressed-enter? event)
+    (on-enter state event)))
+
 (defn user [state owner]
   (reify
     om/IDisplayName
-    (display-name [_] "User")
+    (display-name [_] "user")
 
     om/IRender
     (render [_]
       (when (:user state)
         (let [jid (:user state)
-              presence (st/get-presence @st/state {:jid jid})]
+              presence (st/get-presence @st/state jid)]
           (s/html
            [:div.active-user
             ;; TODO: avatar
@@ -31,9 +75,21 @@
              [:div.row [:h2 (:local jid)]]
              (let [availability (:availability presence :available)
                    default-status (availability->default-status availability)
-                   status (:status presence)
-                   status-text [:p.status-text (if status status default-status)]]
+                   status (get presence :status "")
+                   status-text [:p.status-text
+                                {:content-editable true
+                                 :on-key-up (partial on-key-up state)
+                                 :on-blur (partial on-blur state)}
+                                (if status
+                                  status
+                                  default-status)]]
                (condp = availability
-                 :available [:div.row [:div.status.online] status-text]
-                 :unavailable [:div.row [:div.status.offline] status-text]
-                 :dnd [:div.row [:div.status.busy] status-text]))]]))))))
+                 :available [:div.row
+                             [:div.status.online]
+                             status-text]
+                 :unavailable [:div.row
+                               [:div.status.offline]
+                               status-text]
+                 :dnd [:div.row
+                       [:div.status.busy]
+                       status-text]))]]))))))

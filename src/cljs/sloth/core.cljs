@@ -84,7 +84,7 @@
       ;; (start-raw-packets-watcher client)
 
       ;; Send initial
-      (xmpp/send-presence client)
+      (xmpp/send-presence client (get state :user-presence {}))
 
       ;; Start watchers
       (initialize-roster client)
