@@ -124,6 +124,7 @@
   []
   (add-watch st/state :persistence
              (fn [_ _ oldval newval]
+               ;; TODO: use select-keys here?
                (let [state (dissoc newval
                                    :client :user :roster :presence :chats :groupchats
                                    :features :page :conversations :window-focus)]

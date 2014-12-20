@@ -39,5 +39,5 @@
                     [:span.status.offline])
                   name
                   (when status
-                    [:div.read-status status])])
-               [:li.add [:span "+"] "Add new contact\n              "])]]))))))
+                    [:div.read-status status])]))
+               [:li.add [:span "+"] "Add new contact\n              "]]]))))))
