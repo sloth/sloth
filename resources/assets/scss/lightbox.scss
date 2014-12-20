@@ -96,13 +96,13 @@
 }
 
 .login {
-  background: url(static/imgs/login/login-background.png);
+  background: url(/static/imgs/login/login-background.png);
   background-size: 100%;
   position: relative;
   height: 600px;
   width: 800px;
   .logo {
-    background: url(static/imgs/logo-letters.png);
+    background: url(/static/imgs/logo-letters.png);
     background-size: cover;
     height: 77px;
     position: absolute;
@@ -135,7 +135,7 @@
   }
   .dat-sloth {
     @include transition(all 2.0s ease-in-out);
-    background: url(static/imgs/login/dat-sloth.png);
+    background: url(/static/imgs/login/dat-sloth.png);
     background-size: cover;
     position: absolute;
     width: 350px;
@@ -163,7 +163,7 @@
     -webkit-animation-name: datBubble;
   }
   .dat-bubble-arrow {
-    background: url(static/imgs/login/dat-bubble-arrow.png);
+    background: url(/static/imgs/login/dat-bubble-arrow.png);
     background-size: cover;
     width: 90px;
     height: 90px;
