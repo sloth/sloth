@@ -11,3 +11,7 @@
                       (when (nil? r)
                         (events/unlisten target event)))))
    ch))
+
+(defn pressed-enter?
+  [event]
+  (= (.-keyCode event) 13))
