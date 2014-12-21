@@ -60,22 +60,24 @@
 ;; Messages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn message-component
-  [state owner {:keys [message room loggeduser]}]
+(defn entry-component
+  [state owner {:keys [entry room loggeduser]}]
   (reify
     om/IDisplayName
-    (display-name [_] "room-message")
+    (display-name [_] "room-messages")
 
     om/IRender
     (render [_]
-      (let [author (get-in message [:from :resource])
-            loggeduser (:user state)
+      (let [{:keys [messages from]} entry
+            author (:resource from)
             classname (if (= author (:local loggeduser))
                         "message self"
                         "message")
-            avatar (:avatar message placeholder-avatar-route)
-            body (enrich-text (:body message))
-            stamp (:timestamp message)
+            ;; TODO: avatar
+            avatar placeholder-avatar-route
+            bodies (map (comp enrich-text :body) messages)
+            ;; TODO: include stamp in every msg
+            stamp (:timestamp (first messages))
             hours (.getHours stamp)
             mins (let [mins (.getMinutes stamp)]
                    (if (< mins 10) (str "0" mins) mins))]
@@ -90,7 +92,8 @@
            [:div.message-title
             [:strong author]
             [:span (str hours ":" mins)]]
-           [:p.content body]]])))))
+           (for [body bodies]
+             [:p.content body])]])))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Room
@@ -115,7 +118,7 @@
       (let [roomname (get-in state [:page :room])
             room (st/get-room state roomname)
             loggeduser (:user state)
-            messages (st/get-room-messages state room)]
+            entries (st/get-room-message-entries state room)]
         (when room
           (s/html
            [:section.client-main
@@ -128,10 +131,10 @@
             [:div.chat-zone
              [:div.chat-container
               [:div.messages-container
-               (for [msg messages]
-                 (om/build message-component state {:opts {:message msg
-                                                           :room room
-                                                           :loggeduser loggeduser}
-                                          :react-key (:id msg)}))]
+               (for [entry entries]
+                 (om/build entry-component state {:opts {:entry entry
+                                                         :room room
+                                                         :loggeduser loggeduser}
+                                                    :react-key (apply str (map :id (:messages entry)))}))]
               (om/build message-input state)]
              [:div.chat-sidebar-holder [:div]]]]))))))

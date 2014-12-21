@@ -151,10 +151,35 @@
   (let [roomaddress (:bare room)]
     (get-in state [:groupchats roomaddress])))
 
+(def groupchat-entries-xform
+  (comp
+   (partition-by (fn [msg]
+                   (get-in msg [:from :resource])))
+   (map (fn [entries]
+          {:messages entries
+           :from (:from (first entries))}))))
+
+(defn get-room-message-entries
+  [state room]
+  (sequence groupchat-entries-xform (get-room-messages state room)))
+
 (defn get-contact-messages
   [state user]
   (let [useraddress (:bare user)]
     (get-in state [:chats useraddress])))
+
+(def chat-entries-xform
+  (comp
+   (partition-by (fn [msg]
+                   (console/log (pr-str "MSG" msg))
+                   (get-in msg [:from :bare])))
+   (map (fn [entries]
+          {:messages entries
+           :from (:from (first entries))}))))
+
+(defn get-contact-message-entries
+  [state user]
+  (sequence chat-entries-xform (get-contact-messages state user)))
 
 (defn window-focused?
   []

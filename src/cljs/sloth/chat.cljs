@@ -19,11 +19,13 @@
   (let [loggeduser (st/get-logged-user state)
         client (st/get-client state)
         source (:bare loggeduser)
-        recipient (:bare user)]
+        recipient (:bare user)
+        msg-id (str (gensym source))]
     (when client
       (xmpp/send-message client {:to recipient
                                  :type :chat
-                                 :body message})
+                                 :body message
+                                 :id msg-id})
       ;; (console/log "send-personal-message"
       ;;              (pr-str user)
       ;;              (pr-str loggeduser))
@@ -32,7 +34,8 @@
                                        :from loggeduser
                                        :type :chat
                                        :timestamp (js/Date.)
-                                       :body message}))))
+                                       :body message
+                                       :id msg-id}))))
 
 (defn set-status
   [state status]
