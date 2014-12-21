@@ -41,4 +41,5 @@
   [state status]
   (when-let [client (st/get-client state)]
     (let [user-presence (st/get-presence (:user state))]
-      (xmpp/send-presence client (assoc user-presence :status status)))))
+      (xmpp/send-presence client (assoc user-presence :status status
+                                                      :priority 42)))))

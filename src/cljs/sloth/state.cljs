@@ -1,5 +1,6 @@
 (ns sloth.state
   (:require [om.core :as om :include-macros true]
+            [cuerdas.core :as str]
             [shodan.console :as console :include-macros true]))
 
 ; TODO: schema of state?
@@ -117,16 +118,27 @@
   [app-state presence]
   (if (and (= (get-in app-state [:user :resource])
               (get-in presence [:from :resource])))
-    (assoc app-state :user-presence {:availability (:type presence) :status (:status presence)})
+    (assoc app-state :user-presence (select-keys presence [:availability :status :priority]))
     app-state))
+
+(defn update-others-presence
+  [app-state {:keys [from] :as presence}]
+  (let [bare (:bare from)
+        resource (:resource from)]
+    (assoc-in app-state [:presence bare resource] presence)))
 
 (defn update-presence
   [app-state presence]
   (if (and (= (get-in app-state [:user :bare])
               (get-in presence [:from :bare])))
     (update-own-presence app-state presence)
-    (assoc-in app-state [:presence (get-in presence [:from :bare])] {:availability (:type presence)
-                                                                     :status (:status presence)})))
+    (update-others-presence app-state presence)))
+
+(defn get-others-presence
+  [app-state user]
+  (let [resources (get-in app-state [:presence (:bare user)])
+        presences (vals resources)]
+    (first (sort-by :priority > presences))))
 
 (defn get-presence
   ([user] (get-presence @state user))
@@ -134,7 +146,7 @@
    (let [useraddress (:bare user)]
      (if (= useraddress (:bare (:user state)))
        (:user-presence state)
-       (get-in state [:presence useraddress])))))
+       (get-others-presence state user)))))
 
 (defn update-roster
   [roster]
@@ -171,7 +183,6 @@
 (def chat-entries-xform
   (comp
    (partition-by (fn [msg]
-                   (console/log (pr-str "MSG" msg))
                    (get-in msg [:from :bare])))
    (map (fn [entries]
           {:messages entries

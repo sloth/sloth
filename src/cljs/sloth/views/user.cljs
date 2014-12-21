@@ -39,6 +39,7 @@
   [state event]
   (let [target (.-target event)
         status-text (clean-status (.-innerHTML target))]
+    (set! (.-innerHTML target) status-text)
     (.blur target)))
 
 (defn on-click
@@ -80,9 +81,10 @@
                                 {:content-editable true
                                  :on-key-up (partial on-key-up state)
                                  :on-blur (partial on-blur state)}
-                                (if status
-                                  status
-                                  default-status)]]
+                                (if (or (nil? status)
+                                        (str/empty? status))
+                                  default-status
+                                  status)]]
                (condp = availability
                  :available [:div.row
                              [:div.status.online]

@@ -197,8 +197,9 @@
   [rpr]
   {:from (raw-jid->jid (.-from rpr))
    :status (.-status rpr)
-   :type (keyword (.-type rpr))
-   :to (raw-jid->jid (.-to rpr))})
+   :availability (keyword (.-type rpr))
+   :to (raw-jid->jid (.-to rpr))
+   :priority (.-priority rpr)})
 
 (defn presences
   [client]
