@@ -5,7 +5,7 @@
             [clojure.set :refer [subset?]])
   (:import [goog Uri]))
 
-(def enrichers (atom []))
+(def all-enrichers (atom []))
 
 (defn make-enricher
   [regex match-converter]
@@ -17,20 +17,21 @@
                   (concat (map match-converter (persistent! matches)) [""])))))
 
 (defn register-enricher!
-  [regex match-converter]
-  (swap! enrichers conj (make-enricher regex match-converter)))
+  [enricher]
+  (swap! all-enrichers conj enricher))
 
-(defn enrich-text
-  [s]
+(defn enrich-text-with
+  [enrichers s]
   (let [result (atom [s])]
-    (doseq [f @enrichers]
+    (doseq [f enrichers]
       (swap! result #(mapcat (fn [v]
                                (if (string? v)
                                  (f v)
                                  [v])) %)))
     (filter (complement empty?) @result)))
 
-(def enrich-text (memoize enrich-text))
+(def enrich-text (memoize (fn [s]
+                            (enrich-text-with @all-enrichers s))))
 
 (defn make-external-link
   [url]
@@ -62,7 +63,8 @@
 
 (def img-regex #"https?://.*\.(?:jpe?g|gif|png)")
 
-(register-enricher! img-regex make-image-message)
+(def img-enricher (make-enricher img-regex make-image-message))
+(register-enricher! img-enricher)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Videos
@@ -78,7 +80,8 @@
 
 (def video-regex #"https?://.*\.(?:webm|mp4|ogv)")
 
-(register-enricher! video-regex make-video-message)
+(def video-enricher (make-enricher video-regex make-video-message))
+(register-enricher! video-enricher)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -164,7 +167,8 @@
   [url]
   (make-external-link url))
 
-(register-enricher! http-url-regex convert-http-url)
+(def http-url-enricher (make-enricher http-url-regex convert-http-url))
+(register-enricher! http-url-enricher)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Rooms
@@ -183,7 +187,8 @@
        room-name]
       [:span room-name])))
 
-(register-enricher! room-regex room-converter)
+(def room-enricher (make-enricher room-regex room-converter))
+(register-enricher! room-enricher)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Contacts
@@ -204,7 +209,8 @@
        contact-name]
       [:span contact-name])))
 
-(register-enricher! contact-regex contact-converter)
+(def contact-enricher (make-enricher contact-regex contact-converter))
+(register-enricher! contact-enricher)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emoji
@@ -1102,7 +1108,8 @@
              :class-name "emoji"}]
       e)))
 
-(register-enricher! emoji-regex emoji-converter)
+(def emoji-enricher (make-enricher emoji-regex emoji-converter))
+(register-enricher! emoji-enricher)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Markup
@@ -1114,18 +1121,21 @@
   [s]
   [:strong (unsurround s)])
 
-(register-enricher! bold-regex bold-converter)
+(def bold-enricher (make-enricher bold-regex bold-converter))
+(register-enricher! bold-enricher)
 
 (def cursive-regex #"/[^/\n]+/")
 (defn cursive-converter
   [s]
   [:em (unsurround s)])
 
-(register-enricher! cursive-regex cursive-converter)
+(def cursive-enricher (make-enricher cursive-regex cursive-converter))
+(register-enricher! cursive-enricher)
 
 (def cross-out-regex #"-[^/\n]+-")
 (defn cross-out-converter
   [s]
   [:i.cross-out (unsurround s)])
 
-(register-enricher! cross-out-regex cross-out-converter)
+(def cross-out-enricher (make-enricher cross-out-regex cross-out-converter))
+(register-enricher! cross-out-enricher)
