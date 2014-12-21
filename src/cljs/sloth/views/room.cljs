@@ -124,10 +124,7 @@
            [:section.client-main
             [:header
              [:h1 (str "#" (get-in room [:local]))]
-             [:h2
-              "Le topic del dia: Los "
-              [:strong "Sloth"]
-              " dominaran el mundo\n        "]]
+             [:h2 (:subject room)]]
             [:div.chat-zone
              [:div.chat-container
               [:div.messages-container

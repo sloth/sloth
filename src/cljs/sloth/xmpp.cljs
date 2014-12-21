@@ -239,6 +239,10 @@
                          :from (raw-jid->jid (.-from rchat))
                          :to (raw-jid->jid (.-to rchat))
                          :timestamp (js/Date.)})]
+    (when-let [subject (.-subject rchat)]
+      (assoc! chat
+              :subject
+              subject))
     (when-let [delay (.-delay rchat)]
       (assoc! chat
               :timestamp (.-stamp delay)
