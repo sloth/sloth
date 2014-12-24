@@ -84,11 +84,18 @@
            (fn [state]
              (update-in state [:channels (keyword roomname)] assoc :unread 0)))))
 
+(defn set-room-subject
+  [room subject]
+  (let [roomkey (keyword (:local room))]
+    (swap! state (fn [st]
+                   (assoc-in st [:channels roomkey :subject] subject)))))
+
 (defn insert-group-message
   [message]
-  (let [roomname (get-in message [:from :local])
+  (let [room (:from message)
+        roomname (:local room)
         roomkey (keyword roomname)
-        recipient (get-in message [:from :bare])
+        recipient (:bare room)
         currentroom (get-current-room)]
     (when (and (not (:delay message))
                (not= (:local currentroom) roomname))
@@ -98,8 +105,7 @@
 
     (if (contains? message :subject)
       ;; Modify room subject
-      (swap! state (fn [st]
-                     (assoc-in st [:channels roomkey :subject] (:subject message))))
+      (set-room-subject room (:subject message))
       ;; Insert message to state
       (swap! state (fn [st]
                      (update-in st [:groupchats recipient] (fnil conj []) message))))))

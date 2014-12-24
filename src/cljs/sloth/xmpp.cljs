@@ -278,3 +278,13 @@
     (.once client "muc:join" (partial async/put! c))
     (.joinRoom client room nick)
     c))
+
+(defn raw-subject->subject
+  [rsubject]
+  {:room (raw-jid->jid (.-from rsubject))
+   :subject (.-subject rsubject)})
+
+(defn subjects [client]
+  (let [c (async/chan 10 (map raw-subject->subject))]
+    (.on client "muc:subject" (partial async/put! c))
+    c))

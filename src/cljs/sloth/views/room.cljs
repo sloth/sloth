@@ -3,6 +3,7 @@
             [sablono.core :as s :include-macros true]
             [shodan.console :as console :include-macros true]
             [cuerdas.core :as str]
+            [sloth.events :as events]
             [sloth.routing :refer [placeholder-avatar-route]]
             [sloth.state :as st]
             [sloth.browser :as browser]
@@ -96,6 +97,48 @@
              [:p.content body])]])))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Room subject
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn clean-subject
+  [s]
+  (-> s
+      str/strip-tags
+      str/trim))
+
+(defn room-subject-on-blur
+  [state event]
+  (let [target (.-target event)
+        subject-text (clean-subject (.-innerHTML target))]
+    (chat/set-room-subject (:bare state) subject-text)))
+
+(defn room-subject-on-enter
+  [state event]
+  (let [target (.-target event)
+        subject-text (clean-subject (.-innerHTML target))]
+    (set! (.-innerHTML target) subject-text)
+    (.blur target)))
+
+(defn room-subject-on-key-up
+  [state event]
+  (when (events/pressed-enter? event)
+    (room-subject-on-enter state event)))
+
+(defn room-subject
+  [state owner]
+  (reify
+    om/IDisplayName
+    (display-name [_] "room-subject")
+
+    om/IRender
+    (render [_]
+      (s/html
+       [:h2 {:content-editable true
+             :on-key-up (partial room-subject-on-key-up state)
+             :on-blur (partial room-subject-on-blur state)}
+        (:subject state)]))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Room
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -124,7 +167,7 @@
            [:section.client-main
             [:header
              [:h1 (str "#" (get-in room [:local]))]
-             [:h2 (:subject room)]]
+             (om/build room-subject room)]
             [:div.chat-zone
              [:div.chat-container
               [:div.messages-container

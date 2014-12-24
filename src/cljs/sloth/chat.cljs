@@ -5,6 +5,10 @@
             [sloth.xmpp :as xmpp]
             [sloth.state :as st]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Messaging
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn send-group-message
   [state room message]
   (let [client (:client state)
@@ -37,9 +41,23 @@
                                        :body message
                                        :id msg-id}))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Presence
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn set-status
   [state status]
-  (when-let [client (st/get-client state)]
-    (let [user-presence (st/get-presence (:user state))]
+  (let [client (st/get-client state)
+        user-presence (st/get-presence (:user state))]
       (xmpp/send-presence client (assoc user-presence :status status
-                                                      :priority 42)))))
+                                                      :priority 42))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; MUC
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defn set-room-subject
+  [roomname subject]
+  (when-let [client (st/get-client)]
+    (.setSubject client roomname subject)))

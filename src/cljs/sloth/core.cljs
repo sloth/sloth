@@ -48,6 +48,14 @@
           :groupchat (st/insert-group-message message))
         (recur)))))
 
+(defn- start-muc-watcher
+  [client]
+  (let [subjects (xmpp/subjects client)]
+    (go-loop []
+      (when-let [subject (<! subjects)]
+        (st/set-room-subject (:room subject) (:subject subject))
+        (recur)))))
+
 (defn- start-focus-watcher
   []
   (let [events (browser/listen-focus-events)]
@@ -90,6 +98,7 @@
       (initialize-roster client)
       (start-presence-watcher client)
       (start-chat-watcher client)
+      (start-muc-watcher client)
       (start-focus-watcher)
 
       ;; Join existing rooms

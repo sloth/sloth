@@ -42,13 +42,6 @@
     (set! (.-innerHTML target) status-text)
     (.blur target)))
 
-(defn on-click
-  [state event]
-  (let [target (.-target event)
-        status (clean-status (.-innerHTML target))]
-    (when (default-status? status)
-      (set! (.-innerHTML target) ""))))
-
 (defn on-key-up
   [state event]
   (when (events/pressed-enter? event)
