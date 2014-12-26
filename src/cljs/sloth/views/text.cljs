@@ -40,14 +40,6 @@
    url])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; String manipulation (maybe for cuerdas?)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn unsurround
-  [s]
-  (.substring s 1 (dec (.-length s))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Images
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1102,7 +1094,7 @@
 (def emoji-regex #"\:[^:\s]+\:")
 (defn emoji-converter
   [e]
-  (let [emoji (unsurround e)]
+  (let [emoji (str/unsurround e ":")]
     (if (valid-emojis emoji)
       [:img {:src (emoji-route emoji)
              :class-name "emoji"}]
@@ -1119,7 +1111,7 @@
 (def bold-regex #"\*[^*\n]+\*")
 (defn bold-converter
   [s]
-  [:strong (unsurround s)])
+  [:strong (str/unsurround s "*")])
 
 (def bold-enricher (make-enricher bold-regex bold-converter))
 (register-enricher! bold-enricher)
@@ -1127,7 +1119,7 @@
 (def cursive-regex #"/[^/\n]+/")
 (defn cursive-converter
   [s]
-  [:em (unsurround s)])
+  [:em (str/unsurround s "/")])
 
 (def cursive-enricher (make-enricher cursive-regex cursive-converter))
 (register-enricher! cursive-enricher)
@@ -1135,7 +1127,7 @@
 (def cross-out-regex #"-[^/\n]+-")
 (defn cross-out-converter
   [s]
-  [:i.cross-out (unsurround s)])
+  [:i.cross-out (str/unsurround s "-")])
 
 (def cross-out-enricher (make-enricher cross-out-regex cross-out-converter))
 (register-enricher! cross-out-enricher)

@@ -293,11 +293,14 @@
    :muc (js->clj (.-muc rroom) {:keywordize-keys true}) ; FIXME
    :type (keyword (.-type rroom))})
 
-(defn join-room [client room nick {:keys [history] :or {:history {:maxstanzas 50}}}]
-  (let [c (async/chan 10 (map raw-room->room))]
-    (.once client "muc:join" (partial put! c))
-    (.joinRoom client room nick (clj->js history))
-    c))
+(defn join-room
+  ([client room nick]
+   (join-room client room nick {:history {:maxstanzas 50}}))
+  ([client room nick {:keys [history] :or {:history {:maxstanzas 50}}}]
+   (let [c (async/chan 10 (map raw-room->room))]
+     (.once client "muc:join" (partial put! c))
+     (.joinRoom client room nick (clj->js history))
+     c)))
 
 (defn raw-subject->subject
   [rsubject]
