@@ -3,7 +3,7 @@
             [sablono.core :as s :include-macros true]
             [sloth.views.user :refer [user]]
             [sloth.views.channels :refer [channels]]
-            [sloth.views.subscriptions :refer [subscriptions]]
+            [sloth.views.invitations :refer [room-invitations]]
             [sloth.views.roster :refer [roster]]))
 
 (defn sidebar
@@ -24,7 +24,7 @@
            [:img {:alt "Sloth logo", :width "100%", :src "static/imgs/logo.png"}]]
           (om/build channels state)
           [:hr]
-          (om/build subscriptions state)
+          (om/build room-invitations state)
           [:hr]
           (om/build roster state)]
          (om/build user state)]]))))

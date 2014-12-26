@@ -13,19 +13,8 @@
    :roster {}
    :presence {}
    :subscriptions []
+   :room-invitations []
    :window-focus :focus
-   ;; :subscriptions [{:type :room
-   ;;                  :from {:jid "niwi@niwi.be"
-   ;;                         :local "niwi"}
-   ;;                  :room {:name "clojure"}}
-   ;;                 {:type :room
-   ;;                  :from {:jid "miguel@niwi.be"
-   ;;                         :local "miguel"}
-   ;;                  :room {:name "emacs"}}
-   ;;                 {:type :room
-   ;;                  :from {:jid "ramiro@niwi.be"
-   ;;                         :local "ramiro"}
-   ;;                  :room {:name "anime"}}]
    :channels {:sloth {:local "sloth"
                       :bare "sloth@conference.niwi.be"
                       :unread 0}
@@ -89,6 +78,11 @@
   (let [roomkey (keyword (:local room))]
     (swap! state (fn [st]
                    (assoc-in st [:channels roomkey :subject] subject)))))
+
+(defn add-room-invitation
+  [invitation]
+  (swap! state (fn [st]
+                 (update-in st [:room-invitations] conj invitation))))
 
 (defn insert-group-message
   [message]

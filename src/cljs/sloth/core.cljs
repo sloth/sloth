@@ -50,10 +50,17 @@
 
 (defn- start-muc-watcher
   [client]
-  (let [subjects (xmpp/subjects client)]
+  (let [subjects (xmpp/subjects client)
+        invitations (xmpp/room-invitations client)]
+
     (go-loop []
       (when-let [subject (<! subjects)]
         (st/set-room-subject (:room subject) (:subject subject))
+        (recur)))
+
+    (go-loop []
+      (when-let [invitation (<! invitations)]
+        (st/add-room-invitation invitation)
         (recur)))))
 
 (defn- start-focus-watcher
@@ -152,7 +159,6 @@
 
   ;; Start routing
   (start-history!)
-
 
   ;; Mount main om component
   (mount-root-component))

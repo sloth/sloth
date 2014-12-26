@@ -84,7 +84,7 @@
                (->> (if (= (.-type riq) "error")
                       (either/left (keyword (.-condition (.-error riq))))
                       (either/right riq))
-                    (async/put! c))))
+                    (put! c))))
     c))
 
 ;; Session
@@ -108,11 +108,11 @@
                               (condp = ev
                                 "session:started"
                                 (do
-                                  (async/put! c (either/right (raw-jid->jid rjid)))
+                                  (put! c (either/right (raw-jid->jid rjid)))
                                   (cleanup))
                                 "session:error"
                                 (do
-                                  (async/put! c (either/left))
+                                  (put! c (either/left))
                                   (cleanup))
                                 nil)))
     c))
@@ -166,21 +166,21 @@
 (defn get-blocked [client]
   (let [c (async/chan 1)]
     (.getBlocked client (fn [_ rblocked]
-                          (async/put! c rblocked)))
+                          (put! c rblocked)))
     c))
 
 ; FIXME: returns a server error
 (defn block [client jid]
   (let [c (async/chan 1)]
     (.block client jid (fn [rblock]
-                         (async/put! c rblock)))
+                         (put! c rblock)))
     c))
 
 ; FIXME: returns a server error
 (defn unblock [client jid]
   (let [c (async/chan 1)]
     (.unblock client jid (fn [rblock]
-                           (async/put! c rblock)))
+                           (put! c rblock)))
     c))
 
 (defn subscriptions [client]
@@ -204,7 +204,8 @@
 (defn presences
   [client]
   (let [c (async/chan 10 (map raw-presence->presence))]
-    (.on client "presence" (partial async/put! c))
+    (.on client "presence" (fn [rpresence]
+                             (put! c rpresence)))
     c))
 
 ;; Service discovery
@@ -219,14 +220,14 @@
 (defn disco-info [client jid node]
   (let [c (async/chan 1)]
     (.getDiscoInfo client jid node (fn [_ rinfo]
-                                     (async/put! c rinfo)))
+                                     (put! c rinfo)))
     c))
 
 ; TODO: Error handling
 (defn disco-items [client jid node]
   (let [c (async/chan 1)]
     (.getDiscoItems client jid node (fn [_ ritems]
-                                      (async/put! c ritems)))
+                                      (put! c ritems)))
     c))
 
 ;; Chats
@@ -249,10 +250,18 @@
               :delay (js->clj delay)))
     (persistent! chat)))
 
+(defn is-message?
+  [rchat]
+  ;; TODO: Filter out subject messages too
+  (undefined? (.-mucInvite rchat)))
+
 (defn chats [client]
-  (let [c (async/chan 10 (map raw-chat->chat))]
-    (.on client "chat" (fn [e] (put! c e)))
-    (.on client "groupchat" (fn [e] (put! c e)))
+  (let [c (async/chan 10 (comp
+                          (filter is-message?)
+                          (map raw-chat->chat)))
+        putter (partial put! c)]
+    (.on client "chat" putter)
+    (.on client "groupchat" putter)
     c))
 
 (defn raw-chat-state->chat-state [rchatstate]
@@ -261,7 +270,7 @@
 
 (defn chat-states [client]
   (let [c (async/chan 10 (map raw-chat-state->chat-state))]
-    (.on client "chat:state" (partial async/put! c))
+    (.on client "chat:state" (partial put! c))
     c))
 
 ;; MUC
@@ -275,7 +284,7 @@
 
 (defn join-room [client room nick]
   (let [c (async/chan 10 (map raw-room->room))]
-    (.once client "muc:join" (partial async/put! c))
+    (.once client "muc:join" (partial put! c))
     (.joinRoom client room nick)
     c))
 
@@ -286,5 +295,18 @@
 
 (defn subjects [client]
   (let [c (async/chan 10 (map raw-subject->subject))]
-    (.on client "muc:subject" (partial async/put! c))
+    (.on client "muc:subject" (partial put! c))
+    c))
+
+(defn raw-room-invitation->room-invitation
+  [rinv]
+  {:from (raw-jid->jid (.-from rinv))
+   :room (raw-jid->jid (.-room rinv))
+   :type (keyword (.-type rinv))})
+
+(defn room-invitations [client]
+  (let [c (async/chan 10 (map raw-room-invitation->room-invitation))]
+    (.on client "muc:invite" (partial put! c))
+    c))
+
     c))

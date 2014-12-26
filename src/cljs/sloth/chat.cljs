@@ -61,3 +61,17 @@
   [roomname subject]
   (when-let [client (st/get-client)]
     (.setSubject client roomname subject)))
+
+(defn accept-room-invitation
+  [room]
+  (when-let [client (st/get-client)]
+    (xmpp/accept-subscription client (:bare room))
+    ;; TODO
+    ;; Add to rooms
+    ;; Join room
+))
+
+(defn decline-room-invitation
+  [room]
+  (when-let [client (st/get-client)]
+    (xmpp/deny-subscription client (:bare room))))
