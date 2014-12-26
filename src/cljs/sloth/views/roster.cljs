@@ -20,7 +20,7 @@
         (when (seq contacts)
           (s/html
            [:div.room-list.sidebar-list
-            [:h3 "Contact List"]
+            [:h3 "Roster"]
             [:ul
              (for [contact contacts]
                (let [presence (st/get-presence contact)

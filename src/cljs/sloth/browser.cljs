@@ -55,7 +55,6 @@
   (go
     (let [username (str/trim (get-in @st/state [:user :local]))
           body (:body message)]
-
       (when (and (allow-notifications?) (not= username author) (not (st/window-focused?)))
         (play-notification-sound)
         (notify title body))))))

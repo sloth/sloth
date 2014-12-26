@@ -13,14 +13,10 @@
    :roster {}
    :presence {}
    :subscriptions []
-   :room-invitations []
    :window-focus :focus
-   :channels {:sloth {:local "sloth"
-                      :bare "sloth@conference.niwi.be"
-                      :unread 0}
-              :demo {:local "demo"
-                     :bare "demo@conference.niwi.be"
-                     :unread 0}}
+   :rooms {}
+   :room-invitations []
+   :bookmarks {:conferences []}
    :chats {}
    :groupchats {}})
 
@@ -53,12 +49,16 @@
                      (assoc :user user)
                      (assoc :auth auth)))))
 
+(defn add-room
+  [room]
+  (swap! state assoc-in [:rooms (keyword (get-in room [:jid :local]))] room))
+
 (defn get-room
   ([name] (get-room @state name))
   ([state name]
-   (let [channels (:channels state)
-         name (keyword name)]
-     (get channels name))))
+   (let [rooms (:rooms state)
+         roomkey (keyword name)]
+     (get rooms roomkey))))
 
 (defn get-current-room
   ([] (get-current-room @state))
@@ -66,18 +66,22 @@
    (when-let [roomname (get-in state [:page :room])]
      (get-room state roomname))))
 
-(defn clear-room-unread-messages
-  [room]
-  (let [roomname (:local room)]
+(defn set-room-unread-messages
+  [room n]
+  (let [roomkey (keyword (:local room))]
     (swap! state
            (fn [state]
-             (update-in state [:channels (keyword roomname)] assoc :unread 0)))))
+             (assoc-in state [:rooms roomkey :unread] n)))))
+
+(defn clear-room-unread-messages
+  [room]
+  (set-room-unread-messages room 0))
 
 (defn set-room-subject
-  [room subject]
-  (let [roomkey (keyword (:local room))]
+  [roomjid subject]
+  (let [roomkey (keyword (:local roomjid))]
     (swap! state (fn [st]
-                   (assoc-in st [:channels roomkey :subject] subject)))))
+                   (assoc-in st [:rooms roomkey :subject] subject)))))
 
 (defn add-room-invitation
   [invitation]
@@ -95,7 +99,7 @@
                (not= (:local currentroom) roomname))
       (when-let [room (get-room roomname)]
         (swap! state (fn [st]
-                       (update-in st [:channels roomkey :unread] inc)))))
+                       (update-in st [:rooms roomkey :unread] inc)))))
 
     (if (contains? message :subject)
       ;; Modify room subject
@@ -164,7 +168,7 @@
 
 (defn get-room-messages
   [state room]
-  (let [roomaddress (:bare room)]
+  (let [roomaddress (get-in room [:jid :bare])]
     (get-in state [:groupchats roomaddress])))
 
 (def groupchat-entries-xform

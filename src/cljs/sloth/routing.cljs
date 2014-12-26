@@ -50,7 +50,7 @@
            (fn [state]
              (-> state
                  (assoc :page {:state :room :room name})
-                 (update-in [:channels (keyword name)] assoc :unread 0))))
+                 (update-in [:rooms (keyword name)] assoc :unread 0))))
     (navigate "/login")))
 
 (defroute contact-route "/contact/:name" [name]

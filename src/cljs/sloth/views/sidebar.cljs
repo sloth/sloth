@@ -2,7 +2,7 @@
   (:require [om.core :as om :include-macros true]
             [sablono.core :as s :include-macros true]
             [sloth.views.user :refer [user]]
-            [sloth.views.channels :refer [channels]]
+            [sloth.views.rooms :refer [rooms]]
             [sloth.views.invitations :refer [room-invitations]]
             [sloth.views.roster :refer [roster]]))
 
@@ -22,7 +22,7 @@
          [:div.client-lists
           [:div.logo
            [:img {:alt "Sloth logo", :width "100%", :src "static/imgs/logo.png"}]]
-          (om/build channels state)
+          (om/build rooms state)
           [:hr]
           (om/build room-invitations state)
           [:hr]

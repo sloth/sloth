@@ -185,12 +185,23 @@
 
 (defn subscriptions [client]
   (let [c (async/chan)]
-    (.on client "subscribed" (partial async/put! c))
+    (.on client "subscribed" (partial put! c))
+    c))
+
+(defn subscription-requests [client]
+  (let [c (async/chan)]
+    (.on client "subscribe" (fn [rsubscription]
+                              (put! c {:subscription rsubscription})))
     c))
 
 (defn unsubscriptions [client]
   (let [c (async/chan)]
-    (.on client "unsubscribed" (partial async/put! c))
+    (.on client "unsubscribed" (partial put! c))
+    c))
+
+(defn unsubscription-requests [client]
+  (let [c (async/chan)]
+    (.on client "unsubscribe" (partial put! c))
     c))
 
 (defn raw-presence->presence
@@ -282,10 +293,10 @@
    :muc (js->clj (.-muc rroom) {:keywordize-keys true}) ; FIXME
    :type (keyword (.-type rroom))})
 
-(defn join-room [client room nick]
+(defn join-room [client room nick {:keys [history] :or {:history {:maxstanzas 50}}}]
   (let [c (async/chan 10 (map raw-room->room))]
     (.once client "muc:join" (partial put! c))
-    (.joinRoom client room nick)
+    (.joinRoom client room nick (clj->js history))
     c))
 
 (defn raw-subject->subject
@@ -309,4 +320,18 @@
     (.on client "muc:invite" (partial put! c))
     c))
 
+;; Bookmarks
+
+(defn raw-bookmarks->bookmarks
+  [rbookmarks]
+  (let [storage (.-privateStorage rbookmarks)
+        bookmarks (.-bookmarks storage)]
+    {:conferences (map #(raw-jid->jid (.-jid %)) (.-conferences bookmarks))}))
+
+(defn get-bookmarks
+  [client]
+  (let [c (async/chan 1 (map raw-bookmarks->bookmarks))]
+    (.getBookmarks client (fn [_ rbookmarks]
+                            (put! c rbookmarks)
+                            (close! c)))
     c))

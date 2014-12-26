@@ -31,7 +31,7 @@
      (ready-to-send? event message)
      (do
        (.preventDefault event)
-       (chat/send-group-message state room message)
+       (chat/send-group-message state (:jid room) message)
        (om/set-state! owner :message "")
        (set! (.-value target) ""))
 
@@ -110,7 +110,7 @@
   [state event]
   (let [target (.-target event)
         subject-text (clean-subject (.-innerHTML target))]
-    (chat/set-room-subject (:bare state) subject-text)))
+    (chat/set-room-subject (get-in state [:jid :bare]) subject-text)))
 
 (defn room-subject-on-enter
   [state event]
@@ -166,7 +166,7 @@
           (s/html
            [:section.client-main
             [:header
-             [:h1 (str "#" (get-in room [:local]))]
+             [:h1 (str "#" (get-in room [:jid :local]))]
              (om/build room-subject room)]
             [:div.chat-zone
              [:div.chat-container

@@ -75,3 +75,15 @@
   [room]
   (when-let [client (st/get-client)]
     (xmpp/deny-subscription client (:bare room))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Bookmarks
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn bookmark-room
+  [room]
+  (when-let [client (st/get-client)]
+    (let [bookmark {:autojoin true
+                    :name (get-in room [:jid :local])
+                    :jid (:jid room)}]
+    (.addBookmark client (clj->js bookmark)))))

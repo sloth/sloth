@@ -30,6 +30,15 @@
         (st/update-roster (either/from-either mroster))
         (recur)))))
 
+(defn- initialize-bookmarks
+  [client]
+  (go []
+    (let [bookmarks (<! (xmpp/get-bookmarks client))]
+      (swap! st/state assoc :bookmarks bookmarks)
+    (doseq [room (:conferences bookmarks)]
+      (let [room (<! (xmpp/join-room client (:bare room) (:local (:user @st/state))))]
+        (st/add-room room))))))
+
 (defn- start-presence-watcher
   [client]
   (let [presence-chan (xmpp/presences client)]
@@ -97,27 +106,16 @@
 
       ;; Only for debug
       ;; (start-raw-packets-watcher client)
-
       ;; Send initial
       (xmpp/send-presence client (get state :user-presence {}))
 
       ;; Start watchers
       (initialize-roster client)
+      (initialize-bookmarks client)
       (start-presence-watcher client)
       (start-chat-watcher client)
       (start-muc-watcher client)
       (start-focus-watcher)
-
-      ;; Join existing rooms
-      ;; (let [nickname (:local (:user state))]
-      ;;   (doseq [room (:channels state)]
-      ;;     ;; (let [roomjid (:bare (:bare room))]
-      ;;     ;;   (<! (xmpp/join-room client roomjid nickname)))
-      ;;     (console/log 2222 (pr-str room))))
-
-      ;; Force join room
-      (<! (xmpp/join-room client "sloth@conference.niwi.be" (:local (:user @st/state))))
-      (<! (xmpp/join-room client "demo@conference.niwi.be" (:local (:user @st/state))))
       )))
 
 (defn mount-root-component
@@ -143,7 +141,8 @@
                ;; TODO: use select-keys here?
                (let [state (dissoc newval
                                    :client :user :roster :presence :chats :groupchats
-                                   :features :page :conversations :window-focus)]
+                                   :features :page :conversations :window-focus
+                                   :bookmarks :rooms)]
                  (assoc! local-storage :state state)))))
 
 (defn main

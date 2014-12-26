@@ -20,7 +20,7 @@
     (render [_]
       (when-let [chan-subs (:room-invitations state)]
         (s/html [:div.room-list.sidebar-list
-                 [:h3.nohover "Invited to this channels"]
+                 [:h3.nohover "Invited to this rooms"]
                  [:ul
                   (for [sub chan-subs]
                     [:li.invited
