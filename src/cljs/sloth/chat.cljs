@@ -53,30 +53,6 @@
                                                       :priority 42))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; MUC
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(defn set-room-subject
-  [roomname subject]
-  (when-let [client (st/get-client)]
-    (.setSubject client roomname subject)))
-
-(defn accept-room-invitation
-  [room]
-  (when-let [client (st/get-client)]
-    (xmpp/accept-subscription client (:bare room))
-    ;; TODO
-    ;; Add to rooms
-    ;; Join room
-))
-
-(defn decline-room-invitation
-  [room]
-  (when-let [client (st/get-client)]
-    (xmpp/deny-subscription client (:bare room))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Bookmarks
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -87,3 +63,28 @@
                     :name (get-in room [:jid :local])
                     :jid (:jid room)}]
     (.addBookmark client (clj->js bookmark)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; MUC
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn set-room-subject
+  [roomname subject]
+  (when-let [client (st/get-client)]
+    (.setSubject client roomname subject)))
+
+(defn accept-room-invitation
+  [room]
+  (when-let [client (st/get-client)]
+    (xmpp/accept-subscription client (:bare room))
+    (go
+      (let [r (<! (xmpp/join-room client
+                                  (:bare room)
+                                  (:local (:user @st/state))))]
+        (st/add-room r)
+        (bookmark-room r)))))
+
+(defn decline-room-invitation
+  [room]
+  (when-let [client (st/get-client)]
+    (xmpp/deny-subscription client (:bare room))))
