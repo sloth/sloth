@@ -40,14 +40,12 @@
                 :compiler {:output-to "resources/public/js/app.js"
                            :output-dir "resources/public/js"
                            :optimizations :none
-                           :cache-analysis true
                            :source-map true}}
 
                {:id "normal"
                 :source-paths ["src/cljs"]
                 :compiler {:output-to "resources/public/js/app.js"
                            :optimizations :whitespace
-                           :cache-analysis true
                            :pretty-print true}}
 
                {:id "release"
@@ -55,7 +53,6 @@
                 :compiler {:output-to "resources/public/js/app.js"
                            :optimizations :advanced
                            :pretty-print false
-                           :cache-analysis true
                            :externs ["react/externs/react.js"
                                      "assets/externs/stanza.io.js"]}}]}
 
