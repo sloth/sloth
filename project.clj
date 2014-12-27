@@ -17,7 +17,7 @@
                  [figwheel "0.1.7-SNAPSHOT"]
 
                  ;; Frontend dependencies
-                 [org.clojure/clojurescript "0.0-2496"]
+                 [org.clojure/clojurescript "0.0-2511"]
                  [secretary "1.2.1"]
                  [sablono "0.2.22" :exclusions [com.facebook/react]]
                  [om "0.8.0-beta3"]
@@ -31,7 +31,7 @@
 
   :source-paths ["src/clj"]
   :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
-  :plugins [[lein-cljsbuild "1.0.3"]
+  :plugins [[lein-cljsbuild "1.0.4-SNAPSHOT"]
             [hiccup-bridge "1.0.1"]
             [lein-figwheel "0.1.7-SNAPSHOT"]]
   :cljsbuild {:builds
@@ -40,12 +40,14 @@
                 :compiler {:output-to "resources/public/js/app.js"
                            :output-dir "resources/public/js"
                            :optimizations :none
+                           :cache-analysis true
                            :source-map true}}
 
                {:id "normal"
                 :source-paths ["src/cljs"]
                 :compiler {:output-to "resources/public/js/app.js"
                            :optimizations :whitespace
+                           :cache-analysis true
                            :pretty-print true}}
 
                {:id "release"
@@ -53,6 +55,7 @@
                 :compiler {:output-to "resources/public/js/app.js"
                            :optimizations :advanced
                            :pretty-print false
+                           :cache-analysis true
                            :externs ["react/externs/react.js"
                                      "assets/externs/stanza.io.js"]}}]}
 
