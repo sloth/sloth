@@ -40,12 +40,11 @@
     om/IRender
     (render [_]
       (let [roomlist (vals (:rooms state))]
-        (when roomlist
-          (s/html
-           [:div.room-list.sidebar-list
-            [:h3 "Rooms"]
-            [:ul (for [room roomlist]
-                   (om/build room-component state {:opts {:room room}
-                                                      :key :local}))
-             [:li.add
-              [:span "+"] "Add new room\n              "]]]))))))
+        (s/html
+         [:div.room-list.sidebar-list
+          [:h3 "Rooms"]
+          [:ul (for [room roomlist]
+                 (om/build room-component state {:opts {:room room}
+                                                 :key :local}))
+           [:li.add
+            [:span "+"] "Add new room\n              "]]])))))
