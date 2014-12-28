@@ -61,7 +61,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn entry-component
-  [state owner {:keys [from messages]}]
+  [state owner {:keys [from messages] :as entry}]
   (reify
     om/IDisplayName
     (display-name [_] "contact-message")
@@ -77,12 +77,11 @@
                         "message")]
         {:author author
          :bodies (map (comp enrich-text :body) messages)
-         ;; TODO
          :avatar placeholder-avatar-route
          :classname classname}))
 
     om/IRenderState
-    (render-state [_ {:keys [author classname avatar bodies]}]
+    (render-state [_ {:keys [author classname avatar bodies] :as lstate}]
       (let [stamp (:timestamp (first messages))
             hours (.getHours stamp)
             mins (.getMinutes stamp)
@@ -105,6 +104,27 @@
 ;; Contact chat
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn- render-contact
+  [state {:keys [nickname user]}]
+  (let [presence (st/get-presence state user)
+        status (:status presence)
+        entries (st/get-contact-message-entries state user)]
+    (s/html
+     [:section.client-main
+      [:header
+       [:h1 (str "@" nickname)]
+       [:h2 status]]
+      [:hr]
+      [:div.chat-zone
+       [:div.chat-container
+        [:div.messages-container
+         (for [entry entries]
+           (om/build entry-component state
+                     {:opts entry
+                      :react-key (apply str (map :id (:messages entry)))}))]
+        (om/build message-input state)]
+       [:div.chat-sidebar-holder [:div]]]])))
+
 (defn contact
   [state owner]
   (reify
@@ -113,24 +133,8 @@
 
     om/IRender
     (render [_]
-      (when-let [nickname (get-in state [:page :contact])]
-        (let [user (st/get-contact state nickname)
-              presence (st/get-presence state user)
-              status (:status presence)
-              entries (st/get-contact-message-entries state user)]
-          (s/html
-           [:section.client-main
-            [:header
-             [:h1 (str "@" nickname)]
-             [:h2 status]]
-            [:hr]
-            [:div.chat-zone
-             [:div.chat-container
-              [:div.messages-container
-               (for [entry entries]
-                 (om/build entry-component
-                           state
-                           {:opts entry
-                            :react-key (apply str (map :id (:messages entry)))}))]
-              (om/build message-input state)]
-             [:div.chat-sidebar-holder [:div]]]]))))))
+      (let [nickname (get-in state [:page :contact])
+            user (st/get-contact state nickname)]
+        (when user
+          (render-contact state {:nickname nickname
+                                 :user user}))))))

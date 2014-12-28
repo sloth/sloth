@@ -1,6 +1,7 @@
 (ns sloth.state
   (:require [om.core :as om :include-macros true]
             [cuerdas.core :as str]
+            [sloth.types :as types]
             [shodan.console :as console :include-macros true]))
 
 ; TODO: schema of state?
@@ -109,8 +110,8 @@
                      (update-in st [:groupchats recipient] (fnil conj []) message))))))
 
 (defn insert-private-message
-  [recipient message]
-  (let [recipient (get recipient :bare)]
+  [to message]
+  (let [recipient (types/get-user-bare to)]
     ;; Append messages
     (swap! state (fn [state]
                    (update-in state [:chats recipient] (fnil conj []) message)))))
@@ -143,62 +144,74 @@
     (update-others-presence app-state presence)))
 
 (defn get-others-presence
-  [app-state user]
-  (let [resources (get-in app-state [:presence (:bare user)])
-        presences (vals resources)]
-    (first (sort-by :priority > presences))))
+  "Get presence for any other person
+  that is not self."
+  ([user] (get-others-presence @state user))
+  ([state user]
+   (let [address (types/get-user-bare user)
+         resources (get-in state [:presence address])
+         presences (vals resources)]
+     (first (sort-by :priority > presences)))))
 
 (defn get-presence
+  "Get presence information for user."
   ([user] (get-presence @state user))
   ([state user]
-   (let [useraddress (:bare user)]
-     (if (= useraddress (:bare (:user state)))
-       (:user-presence state)
-       (get-others-presence state user)))))
+   ;; TODO: remove when
+   (when user
+     ;; (console/trace)
+     (let [address1 (types/get-user-bare user)
+           address2 (types/get-user-bare (:user state))]
+       (if (= address1 address2)
+         (:user-presence state)
+         (get-others-presence state user))))))
 
 (defn update-roster
   [roster]
-  (swap! state assoc :roster roster))
+  (let [roster (->> roster
+                    (map (fn [o] [(keyword (types/get-user-local o)) o]))
+                    (into {}))]
+    (swap! state assoc :roster roster)))
 
 (defn get-contact
+  "Get roster entry by nickname."
   ([nickname] (get-contact @state nickname))
   ([state nickname]
    (let [contacts (:roster state)]
      (get contacts (keyword nickname)))))
 
 (defn get-room-messages
+  "Get room messages."
   [state room]
   (let [roomaddress (get-in room [:jid :bare])]
     (get-in state [:groupchats roomaddress])))
 
-(def groupchat-entries-xform
-  (comp
-   (partition-by (fn [msg]
-                   (get-in msg [:from :resource])))
-   (map (fn [entries]
-          {:messages entries
-           :from (:from (first entries))}))))
-
 (defn get-room-message-entries
+  "Get room messages grouped by recipient."
   [state room]
-  (sequence groupchat-entries-xform (get-room-messages state room)))
+  (let [transform (comp
+                   (partition-by (fn [msg] (get-in msg [:from :resource])))
+                   (map (fn [entries]
+                          {:messages entries
+                           :from (:from (first entries))})))]
+    (sequence transform (get-room-messages state room))))
 
 (defn get-contact-messages
+  "Get contact messages."
   [state user]
-  (let [useraddress (:bare user)]
+  (let [useraddress (types/get-user-bare user)]
     (get-in state [:chats useraddress])))
 
-(def chat-entries-xform
-  (comp
-   (partition-by (fn [msg]
-                   (get-in msg [:from :bare])))
-   (map (fn [entries]
-          {:messages entries
-           :from (:from (first entries))}))))
-
 (defn get-contact-message-entries
+  "Get contact messages grouped by recipient."
   [state user]
-  (sequence chat-entries-xform (get-contact-messages state user)))
+  (let [transformer (comp
+                     ;; TODO: use future declared helper multimethod
+                     (partition-by (fn [msg] (types/get-user-bare (:from msg))))
+                     (map (fn [entries]
+                            {:messages entries
+                             :from (:from (first entries))})))]
+    (sequence transformer (get-contact-messages state user))))
 
 (defn window-focused?
   []

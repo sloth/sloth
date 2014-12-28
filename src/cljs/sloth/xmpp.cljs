@@ -3,6 +3,7 @@
   (:require [cljs.core.async :as async :refer [<! timeout put! chan close!]]
             [shodan.console :as console :include-macros true]
             [sloth.config :as config]
+            [sloth.types :as types]
             [cats.core :as m :include-macros true]
             [cats.monad.either :as either]))
 
@@ -55,7 +56,7 @@
   ([client presence]
      (.sendPresence client (clj->js presence))))
 
-(defn send-message [client msg]
+(defn send-message
   "Send a message stanza.
 
      http://xmpp.org/rfcs/rfc3921.html#messaging
@@ -72,7 +73,15 @@
                                :type :groupchat
                                :body \"How are y'all?\"})
   "
-  (.sendMessage client (clj->js msg)))
+ [client {:keys [to id type body]}]
+ (let [message #js {:to (types/get-user-bare to)
+                    :id id
+                    :type (case type
+                            :sloth.types/chat "chat"
+                            :sloth.types/groupchat "groupchat")
+                    :body body}]
+   (console/log "xmpp/send-message" message)
+   (.sendMessage client message)))
 
 (defn send-iq [client iq]
   "Send an IQ stanza. Returns a channel that will eventually have
@@ -87,15 +96,9 @@
                     (put! c))))
     c))
 
-;; Session
-
-(defn raw-jid->jid
-  [rjid]
-  {:bare (.-bare rjid)
-   :local (.-local rjid)
-   :domain (.-domain rjid)
-   :resource (.-resource rjid)
-   :full (.-full rjid)})
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Sesssion
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn start-session [client]
   (let [c (async/chan 1)
@@ -103,17 +106,18 @@
                   (async/close! c)
                   (.off client "session:*"))]
     (connect client)
-
     (.on client "session:*" (fn [ev rjid]
                               (condp = ev
                                 "session:started"
                                 (do
-                                  (put! c (either/right (raw-jid->jid rjid)))
+                                  (put! c (either/right (types/rjid->jid rjid)))
                                   (cleanup))
+
                                 "session:error"
                                 (do
                                   (put! c (either/left))
                                   (cleanup))
+
                                 nil)))
     c))
 
@@ -131,25 +135,58 @@
                           :client client
                           :auth {:username username
                                  :password password}}))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Roster
-(defn raw-roster->roster
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- transform-roster-item
+  "Given raw roster item transform it to
+  jid instance."
+  [roster-entry]
+  (let [jid (types/rjid->jid (.-jid roster-entry))
+        sub (keyword (.-subscription roster-entry))
+        groups (when-let [groups (.-groups roster-entry)]
+                 (into [] groups))]
+    (types/->roster-item {:jid jid
+                          :subscription sub
+                          :groups groups})))
+
+(defn- transform-roster
+  "Given a raw roster instance, transform it to vector
+  of jid instances."
   [rroster]
-  (let [transformfn (fn [rosteritem]
-                      (let [item (raw-jid->jid (.-jid rosteritem))]
-                        [(keyword (:local item))
-                         (assoc item :subscription (keyword (.-subscription rosteritem)))]))]
-    (into {} (map transformfn (.-items (.-roster rroster))))))
+  (let [rroster (.-roster rroster)
+        items (.-items rroster)]
+    (map transform-roster-item items)))
+
+(defn- on-roster-received
+  [channel rroster]
+  (let [type (keyword (.-type rroster))
+        rsp  (cond
+               (= type :error)
+               (let [error (.-error rroster)
+                     condition (.-condition error)]
+                 (either/left condition))
+
+               :else
+               (let [roster (transform-roster rroster)]
+                 (either/right roster)))]
+    (put! channel rsp)
+    (close! channel)
+    rsp))
 
 (defn get-roster
-  [client]
-  (let [c (async/chan 1)]
-    (.getRoster client (fn [_ rroster]
-                          (->> (if (= (.-type rroster) "error")
-                                 (either/left (keyword (.-condition (.-error rroster))))
-                                 (either/right (raw-roster->roster rroster)))
-                                (put! c))
-                          (close! c)))
-    c))
+  "Given a client, return a channel that will be resolved
+  with roster. Roster is represented with a seq of
+  jid instances."
+  ([client] (get-roster client (chan 1)))
+  ([client channel]
+   (.getRoster client #(on-roster-received channel %2))
+   channel))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Subscriptions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn accept-subscription [client jid]
   (.acceptSubscription client jid))
@@ -204,22 +241,30 @@
     (.on client "unsubscribe" (partial put! c))
     c))
 
-(defn raw-presence->presence
-  [rpr]
-  {:from (raw-jid->jid (.-from rpr))
-   :status (.-status rpr)
-   :availability (keyword (.-type rpr))
-   :to (raw-jid->jid (.-to rpr))
-   :priority (.-priority rpr)})
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Presences
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- transform-presence
+  "Transform raw xmpp presence object to
+  sloth Presence instance."
+  [rpresence]
+  (types/->presence {:from (types/rjid->jid (.-from rpresence))
+                     :to (types/rjid->jid (.-to rpresence))
+                     :status (.-status rpresence)
+                     :availability (keyword (.-type rpresence))
+                     :priority (.-priority rpresence)}))
 
 (defn presences
-  [client]
-  (let [c (async/chan 10 (map raw-presence->presence))]
-    (.on client "presence" (fn [rpresence]
-                             (put! c rpresence)))
-    c))
+  "Get presences information."
+  ([client] (presences client (chan 10 (map transform-presence))))
+  ([client channel]
+   (.on client "presence" (partial put! channel))
+   channel))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Service discovery
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn get-features [client]
   (js->clj (.-features (.-discoInfo (.getCurrentCaps client)))))
@@ -241,42 +286,27 @@
                                       (put! c ritems)))
     c))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Chats
-
-(defn raw-chat->chat
-  [rchat]
-  (let [chat (transient {:id (.-id rchat)
-                         :body (.-body rchat)
-                         :type (keyword (.-type rchat))
-                         :from (raw-jid->jid (.-from rchat))
-                         :to (raw-jid->jid (.-to rchat))
-                         :timestamp (js/Date.)})]
-    (when-let [subject (.-subject rchat)]
-      (assoc! chat
-              :subject
-              subject))
-    (when-let [delay (.-delay rchat)]
-      (assoc! chat
-              :timestamp (.-stamp delay)
-              :delay (js->clj delay)))
-    (persistent! chat)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn is-message?
   [rchat]
   ;; TODO: Filter out subject messages too
   (undefined? (.-mucInvite rchat)))
 
-(defn chats [client]
-  (let [c (async/chan 10 (comp
-                          (filter is-message?)
-                          (map raw-chat->chat)))
-        putter (partial put! c)]
-    (.on client "chat" putter)
-    (.on client "groupchat" putter)
-    c))
+(defn chats
+  ([client]
+   (let [channel (chan 1 (comp (filter is-message?)
+                               (map types/rchat->chat)))]
+     (chats client channel)))
+  ([client channel]
+   (.on client "chat" (partial put! channel))
+   (.on client "groupchat" (partial put! channel))
+   channel))
 
 (defn raw-chat-state->chat-state [rchatstate]
-  {:from (raw-jid->jid (.-from rchatstate))
+  {:from (types/rjid->jid (.-from rchatstate))
    :state (keyword (.-chatState rchatstate))})
 
 (defn chat-states [client]
@@ -289,7 +319,7 @@
 (defn raw-room->room
   [rroom]
   ; TODO: more complete info: topic & co
-  {:jid (raw-jid->jid (.-from rroom))
+  {:jid (types/rjid->jid (.-from rroom))
    :muc (js->clj (.-muc rroom) {:keywordize-keys true}) ; FIXME
    :type (keyword (.-type rroom))})
 
@@ -304,7 +334,7 @@
 
 (defn raw-subject->subject
   [rsubject]
-  {:room (raw-jid->jid (.-from rsubject))
+  {:room (types/rjid->jid (.-from rsubject))
    :subject (.-subject rsubject)})
 
 (defn subjects [client]
@@ -314,8 +344,8 @@
 
 (defn raw-room-invitation->room-invitation
   [rinv]
-  {:from (raw-jid->jid (.-from rinv))
-   :room (raw-jid->jid (.-room rinv))
+  {:from (types/rjid->jid (.-from rinv))
+   :room (types/rjid->jid (.-room rinv))
    :type (keyword (.-type rinv))})
 
 (defn room-invitations [client]
@@ -329,7 +359,7 @@
   [rbookmarks]
   (let [storage (.-privateStorage rbookmarks)
         bookmarks (.-bookmarks storage)]
-    {:conferences (map #(raw-jid->jid (.-jid %)) (.-conferences bookmarks))}))
+    {:conferences (map #(types/rjid->jid (.-jid %)) (.-conferences bookmarks))}))
 
 (defn get-bookmarks
   [client]

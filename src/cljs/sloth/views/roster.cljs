@@ -3,7 +3,8 @@
             [shodan.console :as console :include-macros true]
             [sablono.core :as s :include-macros true]
             [sloth.routing :refer [navigate contact-route]]
-            [sloth.state :as st]))
+            [sloth.state :as st]
+            [sloth.types :as types]))
 
 (defn roster
   [state owner]
@@ -23,8 +24,8 @@
             [:h3 "Roster"]
             [:ul
              (for [contact contacts]
-               (let [presence (st/get-presence contact)
-                     name (:local contact)
+               (let [presence (st/get-presence state contact)
+                     name (types/get-user-local contact)
                      is-current-contact? (and (= (get-in state [:page :state]) :contact)
                                               (= (get-in state [:page :contact]) name))
                      attrs {:on-click #(navigate (contact-route {:name name}))

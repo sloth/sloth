@@ -1,6 +1,7 @@
 (ns sloth.browser
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [sloth.state :as st]
+            [sloth.types :as types]
             [shodan.console :as console :include-macros true]
             [cuerdas.core :as str]
             [cljs.core.async :as async :refer [put! chan]]))
@@ -25,39 +26,49 @@
                        (set! (.-scrollTop element) maxscroll)))
                    500)))
 
-(defn notify
-  [title body]
-  (let [icon "static/imgs/placerholder-avatar-1.jpg"
-        notification (js/Notification. title #js {:body body :icon icon})]
-    (js/setTimeout #(.close notification) 3000)))
+(defn- notify
+  "Send browser notification."
+  [{:keys [message author title]}]
+  (let [user (st/get-logged-user)
+        nickname (types/get-user-local user)
+        body (:body message)]
+    (when (and (allow-notifications?)
+               (not= nickname author)
+               (not (st/window-focused?)))
 
-(defn play-notification-sound
-  []
-  (let [audio (.querySelector js/document "#notification-sound")]
-    (.play audio)))
+      ;; Play sound notification
+      (let [audio (.querySelector js/document "#notification-sound")]
+        (.play audio))
+
+      ;; Show browser notification popup
+      (let [icon "static/imgs/placerholder-avatar-1.jpg"
+            options (clj->js {:body body :icon icon})
+            notification (js/Notification. title options)]
+        (js/setTimeout #(.close notification) 3000)))))
 
 (defn notify-if-applies
-  ([message]
+  "Send browser notification and sound notification
+  if message matches specific conditions."
+  [message]
   (let [type (:type message)
         channel-name (get-in message [:from :local])]
-
     (condp = type
-      :chat (let [author (str/trim (get-in message [:from :local]))
-                  title author]
-              (notify-if-applies message author title))
+      :sloth.types/chat
+      (let [author (str/trim (get-in message [:from :local]))]
+        (notify {:message message
+                 :author author
+                 :title author}))
 
-      :groupchat (let [author (str/trim (get-in message [:from :resource]))
-                       channel-name (get-in message [:from :local])
-                       title (str author "@" channel-name)]
-                   (notify-if-applies message author title)))))
+      :sloth.types/groupchat
+      (let [author (str/trim (get-in message [:from :resource]))
+            channel-name (get-in message [:from :local])
+            title (str author "@" channel-name)]
+        (notify {:message message
+                 :author author
+                 :title title}))
 
-  ([message author title]
-  (go
-    (let [username (str/trim (get-in @st/state [:user :local]))
-          body (:body message)]
-      (when (and (allow-notifications?) (not= username author) (not (st/window-focused?)))
-        (play-notification-sound)
-        (notify title body))))))
+      (console/error "notify-if-applies: no matching message type" (pr-str type)))))
+
 
 (defn listen-focus-events
   ([]

@@ -3,6 +3,7 @@
   (:require [cljs.core.async :refer [<!]]
             [shodan.console :as console :include-macros true]
             [sloth.xmpp :as xmpp]
+            [sloth.types :as types]
             [sloth.state :as st]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -19,27 +20,22 @@
                                  :body message}))))
 
 (defn send-personal-message
-  [state user message]
-  (let [loggeduser (st/get-logged-user state)
-        client (st/get-client state)
-        source (:bare loggeduser)
-        recipient (:bare user)
-        msg-id (str (gensym source))]
-    (when client
-      (xmpp/send-message client {:to recipient
-                                 :type :chat
-                                 :body message
-                                 :id msg-id})
-      ;; (console/log "send-personal-message"
-      ;;              (pr-str user)
-      ;;              (pr-str loggeduser))
+  "Given a state, recipient and body of message
+  it constructs a chat instance and sends it
+  thought the xmpp connection.
 
-      (st/insert-private-message user {:to user
-                                       :from loggeduser
-                                       :type :chat
-                                       :timestamp (js/Date.)
-                                       :body message
-                                       :id msg-id}))))
+  Additionally adds it to the local state because
+  p2p messages does not returns like in muc."
+  [state to message]
+  (when-let [client (st/get-client state)]
+    (let [user (st/get-logged-user state)
+          msg (types/->chat {:to to
+                             :from user
+                             :type :chat
+                             :timestamp (js/Date.)
+                             :body message})]
+      (xmpp/send-message client msg)
+      (st/insert-private-message to msg))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Presence

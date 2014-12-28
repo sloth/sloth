@@ -4,6 +4,7 @@
             [cuerdas.core :as str]
             [sloth.events :as events]
             [sloth.chat :as chat]
+            [sloth.types :as types]
             [sloth.state :as st]))
 
 (def availability->default-status
@@ -47,26 +48,25 @@
   (when (events/pressed-enter? event)
     (on-enter state event)))
 
-(defn user [state owner]
+(defn user
+  [state owner]
   (reify
     om/IDisplayName
     (display-name [_] "user")
 
     om/IRender
     (render [_]
-      (when (:user state)
-        (let [jid (:user state)
-              presence (st/get-presence @st/state jid)]
+      (let [user (:user state)]
+        (when-let [presence (some->> user (st/get-presence state))]
           (s/html
            [:div.active-user
             ;; TODO: avatar
-            [:img
-             {:height "50",
-              :width "50",
-              :alt "#user",
-              :src "static/imgs/placerholder-avatar-1.jpg"}]
+            [:img {:height "50",
+                   :width "50",
+                   :alt "#user",
+                   :src "static/imgs/placerholder-avatar-1.jpg"}]
             [:div.square
-             [:div.row [:h2 (:local jid)]]
+             [:div.row [:h2 (types/get-user-local user)]]
              (let [availability (:availability presence :available)
                    default-status (availability->default-status availability)
                    status (get presence :status "")

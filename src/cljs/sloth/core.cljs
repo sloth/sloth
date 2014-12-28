@@ -52,9 +52,11 @@
     (go-loop []
       (when-let [message (<! chats)]
         (browser/notify-if-applies message)
+
         (condp = (:type message)
-          :chat (st/insert-private-message (:from message) message)
-          :groupchat (st/insert-group-message message))
+          :sloth.types/chat (st/insert-private-message (:from message) message)
+          :sloth.types/groupchat (st/insert-group-message message)
+          (console/error "start-chat-watcher: no matching message type"))
         (recur)))))
 
 (defn- start-muc-watcher
