@@ -125,7 +125,7 @@
         (om/build message-input state)]
        [:div.chat-sidebar-holder [:div]]]])))
 
-(defn contact
+(defn contact-component
   [state owner]
   (reify
     om/IDisplayName

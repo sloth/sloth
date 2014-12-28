@@ -35,10 +35,6 @@
   "Get bare representation of user/jid."
   :type)
 
-(defmulti get-user-resource
-  "Get resource representation of user/jid."
-  :type)
-
 ;; Useful functions implementation
 
 (defmethod get-user-local ::jid
@@ -48,10 +44,6 @@
 (defmethod get-user-bare ::jid
   [jid]
   (:bare jid))
-
-(defmethod get-user-resource ::jid
-  [jid]
-  (:resource jid))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Roster
@@ -71,11 +63,6 @@
 (defmethod get-user-bare ::rosteritem
   [rosteritem]
   (get-in rosteritem [:jid :bare]))
-
-;; TODO: not needed at this moment.
-;; (defmethod get-user-resource ::rosteritem
-;;   [rosteritem]
-;;   (get-in rosteritem [:jid :resource]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Presence
@@ -125,4 +112,10 @@
                             (js/Date.)
                             timestamp)))))
 
+
+;; (defmulti get-recipient-nickname
+;;   "Get recipient nickname from message.
+
+;;   The purpose of this function is make uniform access
+;;   to local representation
 

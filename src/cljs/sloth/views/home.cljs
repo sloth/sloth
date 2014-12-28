@@ -3,7 +3,7 @@
             [sablono.core :as s :refer-macros [html]]
             [sloth.routing :refer [static-image-route]]))
 
-(defn home
+(defn home-component
   [_ owner]
   (reify
     om/IDisplayName

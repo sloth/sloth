@@ -1,4 +1,4 @@
-(ns sloth.views.invitations
+(ns sloth.views.sidebar.invitations
   (:require [om.core :as om :include-macros true]
             [sablono.core :as s :include-macros true]
             [sloth.routing :as routing]
@@ -11,7 +11,7 @@
 ;;  (chat/accept-room-invitation room)
 )
 
-(defn room-invitations
+(defn invitations-component
   [state owner]
   (reify
     om/IDisplayName

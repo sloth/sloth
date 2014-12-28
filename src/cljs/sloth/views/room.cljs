@@ -142,7 +142,7 @@
 ;; Room
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn room
+(defn room-component
   [state owner]
   (reify
     om/IDisplayName

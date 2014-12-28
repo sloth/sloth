@@ -1,17 +1,15 @@
-(ns sloth.views.rooms
+(ns sloth.views.sidebar.rooms
   (:require [om.core :as om :include-macros true]
             [sloth.routing :refer [navigate room-route]]
             [shodan.console :as console :include-macros true]
-            [sablono.core :as s :include-macros true]
-            [sloth.views.user :refer [user]]))
-
+            [sablono.core :as s :include-macros true]))
 
 (defn- is-current-room?
   [state name]
   (and (= (get-in state [:page :state]) :room)
        (= (get-in state [:page :room])  name)))
 
-(defn room-component
+(defn- room-component
   [state owner {:keys [room]}]
   (reify
     om/IDisplayName
@@ -33,7 +31,7 @@
            [:li attrs [:span "#"] name [:i unread] [:i.close-channel "x"]]
            [:li attrs [:span "#"] name [:i.close-channel "x"]]))))))
 
-(defn rooms
+(defn roomlist-component
   [state owner]
   (reify
     om/IDisplayName

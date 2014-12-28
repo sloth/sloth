@@ -1,4 +1,4 @@
-(ns sloth.views.roster
+(ns sloth.views.sidebar.roster
   (:require [om.core :as om :include-macros true]
             [shodan.console :as console :include-macros true]
             [sablono.core :as s :include-macros true]
@@ -6,7 +6,7 @@
             [sloth.state :as st]
             [sloth.types :as types]))
 
-(defn roster
+(defn roster-component
   [state owner]
   (reify
     om/IDisplayName

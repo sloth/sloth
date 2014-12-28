@@ -34,7 +34,7 @@
   (when (events/pressed-enter? event)
     (on-enter state owner)))
 
-(defn login
+(defn login-component
   [_ owner]
   (reify
     om/IDisplayName

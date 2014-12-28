@@ -1,12 +1,13 @@
 (ns sloth.views.sidebar
   (:require [om.core :as om :include-macros true]
             [sablono.core :as s :include-macros true]
-            [sloth.views.user :refer [user]]
-            [sloth.views.rooms :refer [rooms]]
-            [sloth.views.invitations :refer [room-invitations]]
-            [sloth.views.roster :refer [roster]]))
+            [sloth.views.sidebar.user :refer [loggeduser-component]]
+            [sloth.views.sidebar.rooms :refer [roomlist-component]]
+            [sloth.views.sidebar.invitations :refer [invitations-component]]
+            [sloth.views.sidebar.roster :refer [roster-component]]))
 
-(defn sidebar
+
+(defn sidebar-component
   [state owner]
   (reify
     om/IDisplayName
@@ -22,9 +23,10 @@
          [:div.client-lists
           [:div.logo
            [:img {:alt "Sloth logo", :width "100%", :src "static/imgs/logo.png"}]]
-          (om/build rooms state)
+          (om/build roomlist-component state)
           [:hr]
-          (om/build room-invitations state)
+          (om/build invitations-component state)
           [:hr]
-          (om/build roster state)]
-         (om/build user state)]]))))
+          (om/build roster-component state)]
+         (om/build loggeduser-component state)]]))))
+

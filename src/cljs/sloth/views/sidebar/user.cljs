@@ -1,4 +1,4 @@
-(ns sloth.views.user
+(ns sloth.views.sidebar.user
   (:require [om.core :as om :include-macros true]
             [sablono.core :as s :include-macros true]
             [cuerdas.core :as str]
@@ -48,7 +48,7 @@
   (when (events/pressed-enter? event)
     (on-enter state event)))
 
-(defn user
+(defn loggeduser-component
   [state owner]
   (reify
     om/IDisplayName
