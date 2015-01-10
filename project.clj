@@ -21,7 +21,7 @@
                  [secretary "1.2.1"]
                  [sablono "0.2.22" :exclusions [com.facebook/react]]
                  [om "0.8.0-beta3"]
-                 [hodgepodge "0.1.0"]
+                 [hodgepodge "0.1.1"]
                  [cuerdas "0.1.0-SNAPSHOT"]
                  [shodan "0.4.1"]
 
