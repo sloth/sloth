@@ -4,12 +4,14 @@
             [sloth.types :as types]
             [shodan.console :as console :include-macros true]))
 
-; TODO: schema of state?
-(defn make-initial-state []
-  {:page {:state :login}
-   :client nil
-   :user nil
-   :user-presence {}
+(defonce app-state (atom nil))
+(defonce meta-state (atom nil)
+
+(defn- initial-state
+  "Build initial structure for the
+  application state."
+  []
+  {:user-presence {}
    :features []
    :roster {}
    :presence {}
@@ -21,34 +23,59 @@
    :chats {}
    :groupchats {}})
 
-(defonce state (atom nil))
+(defn- initial-meta-state
+  "Build initial structure for the global
+  meta state.
 
-(defn set-initial-state
-  ([] (reset! state (make-initial-state)))
+  Global meta state is mainly used for
+  store auth and routing information."
+  []
+  {:page :login
+   :client nil
+   :user nil})
+
+(defn initialize-state
+  "Setup initial application and meta
+  state."
+  ([]
+   (reset! meta-state (initial-meta-state))
+   (reset! state (initial-state)))
   ([s]
-   (let [initial (make-initial-state)]
+   (reset! meta-state (initial-meta-state))
+   (let [initial (initial-state)]
      (reset! state (merge initial s)))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; User and Auth
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn logged-in?
-  ([] (logged-in? @state))
-  ([st]
-   (not (nil? (:auth st)))))
+  "Check if currently we are in
+  loggedin state or not."
+  ([] (logged-in? @meta-state))
+  ([state]
+   (not (nil? (:user state)))))
 
 (defn get-logged-user
-  ([] (get-logged-user @state))
-  ([state] (:user state)))
+  "Get current logged user."
+  []
+  (:user @meta-state))
 
 (defn get-client
-  ([] (get-client @state))
-  ([state] (:client state)))
+  "Get current xmpp client instance."
+  []
+  (:client @meta-state))
 
 (defn initialize-session
+  "Store the current session in
+  corresponding state."
   [{:keys [user client auth]}]
-  (swap! state (fn [v]
-                 (-> v
-                     (assoc :client client)
-                     (assoc :user user)
-                     (assoc :auth auth)))))
+  (swap! meta-state assoc :client client :user user)
+  (swap! state assoc :auth auth))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Rooms
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn add-room
   [room]
@@ -88,6 +115,11 @@
   [invitation]
   (swap! state (fn [st]
                  (update-in st [:room-invitations] conj invitation))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Rooms
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 (defn insert-group-message
   [message]
@@ -179,6 +211,13 @@
   ([state nickname]
    (let [contacts (:roster state)]
      (get contacts (keyword nickname)))))
+
+(defn get-current-contact
+  "Get roster entry by nickname."
+  ([] (get-contact @state))
+  ([state]
+   (->> (get-in state [:page :contact])
+        (get-contact state))))
 
 (defn get-room-messages
   "Get room messages."

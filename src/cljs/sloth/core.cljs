@@ -129,24 +129,22 @@
 (defn start-login-watcher
   "Watch login changes and initialize xmpp session."
   []
-  (add-watch st/state :log-in
-             (fn [_ _ oldval newval]
-               (when (and (st/logged-in? newval)
-                          (not @bootstrap))
-                 (bootstrap-session)
-                 (.requestPermission js/Notification)
-                 (swap! bootstrap not)))))
+  (letfn [(watcher [_ _ _ state]
+            (when (and (st/logged-in? state)
+                       (not @bootstrap))
+              (bootstrap-session)
+              (.requestPermission js/Notification)
+              (swap! bootstrap not)))]
+    (add-watch st/meta-state :auth watcher)))
 
 (defn start-state-persistence
+  "Watch state changes and persist them
+  into local storage."
   []
-  (add-watch st/state :persistence
-             (fn [_ _ oldval newval]
-               ;; TODO: use select-keys here?
-               (let [state (dissoc newval
-                                   :client :user :roster :presence :chats :groupchats
-                                   :features :page :conversations :window-focus
-                                   :bookmarks :rooms)]
-                 (assoc! hodgepodge/local-storage :state state)))))
+  (letfn [(persist [state]
+            (let [state (select-keys state [:auth])]
+              (assoc! hodgepodge/local-storage :state state)))]
+    (add-watch st/state :persistence #(persist %4))))
 
 (defn main
   []
@@ -156,8 +154,8 @@
 
   ;; Restore previously stored state
   (if-let [storedstate (:state hodgepodge/local-storage nil)]
-    (st/set-initial-state storedstate)
-    (st/set-initial-state))
+    (st/initialize-state storedstate)
+    (st/initialize-state))
 
   ;; Start routing
   (start-history!)

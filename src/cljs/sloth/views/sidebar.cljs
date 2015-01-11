@@ -29,4 +29,3 @@
           [:hr]
           (om/build roster-component state)]
          (om/build loggeduser-component state)]]))))
-
