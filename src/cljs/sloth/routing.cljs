@@ -40,30 +40,28 @@
 
 (defroute home-route "/" []
   (if (st/logged-in?)
-    (swap! st/state assoc :page {:state :home})
+    (st/set-route :home)
     (navigate "/login")))
 
 (defroute login-route "/login" []
   (if (st/logged-in?)
     (navigate "")
-    (swap! st/state assoc :page {:state :login})))
+    (st/set-route :login)))
 
 (defroute room-route "/room/:name" [name]
   (if (st/logged-in?)
-    (swap! st/state
-           (fn [state]
-             (-> state
-                 (assoc :page {:state :room :room name})
-                 (update-in [:rooms (keyword name)] assoc :unread 0))))
+    (do
+      (st/set-route :room {:room name})
+      ;; TODO: abstract with function instead of direct state manipulation
+      (swap! st/app-state #(update-in % [:rooms (keyword name)] assoc :unread 0)))
     (navigate "/login")))
 
 (defroute contact-route "/contact/:name" [name]
   (if (st/logged-in?)
-    (swap! st/state assoc :page {:state :contact, :contact name})
+    (st/set-route :contact {:contact name})
     (navigate "/login")))
 
 (defroute catch-all-route "*" []
-  ; FIXME: invalid route
   (if (st/logged-in?)
     (navigate "")
     (navigate "/login")))

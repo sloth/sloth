@@ -30,7 +30,7 @@
   Global meta state is mainly used for
   store auth and routing information."
   []
-  {:page :login
+  {:page {:name :login}
    :client nil
    :user nil})
 
@@ -44,6 +44,17 @@
    (reset! meta-state (initial-meta-state))
    (let [initial (initial-state)]
      (reset! state (merge initial s)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Routings
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn set-route
+  "Set the current page with additional paramters."
+  ([name] (set-route name nil))
+  ([name params]
+   (let [pagestate (merge {:name name} params)]
+     (swap! meta-state assoc :page pagestate))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User and Auth
@@ -77,19 +88,22 @@
 ;; Rooms
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn add-room
+(defn insert-room
+  "Insert room into joined room
+  list on app state."
   [room]
-  (swap! state assoc-in [:rooms (keyword (get-in room [:jid :local]))] room))
+  (let [roomid (keyword (get-in room [:jid :local]))]
+    (swap! app-state assoc-in [:rooms roomid] room)))
 
 (defn get-room
-  ([name] (get-room @state name))
+  ([name] (get-room @app-state name))
   ([state name]
    (let [rooms (:rooms state)
          roomkey (keyword name)]
      (get rooms roomkey))))
 
 (defn get-current-room
-  ([] (get-current-room @state))
+  ([] (get-current-room @app-state))
   ([state]
    (when-let [roomname (get-in state [:page :room])]
      (get-room state roomname))))
@@ -178,7 +192,7 @@
 (defn get-others-presence
   "Get presence for any other person
   that is not self."
-  ([user] (get-others-presence @state user))
+  ([user] (get-others-presence @app-state user))
   ([state user]
    (let [address (types/get-user-bare user)
          resources (get-in state [:presence address])
@@ -187,7 +201,7 @@
 
 (defn get-presence
   "Get presence information for user."
-  ([user] (get-presence @state user))
+  ([user] (get-presence @app-state user))
   ([state user]
    ;; TODO: remove when
    (when user
@@ -207,14 +221,14 @@
 
 (defn get-contact
   "Get roster entry by nickname."
-  ([nickname] (get-contact @state nickname))
+  ([nickname] (get-contact @app-state nickname))
   ([state nickname]
    (let [contacts (:roster state)]
      (get contacts (keyword nickname)))))
 
 (defn get-current-contact
   "Get roster entry by nickname."
-  ([] (get-contact @state))
+  ([] (get-contact @app-state))
   ([state]
    (->> (get-in state [:page :contact])
         (get-contact state))))
@@ -254,4 +268,4 @@
 
 (defn window-focused?
   []
-  (= :focus (:window-focus @state)))
+  (= :focus (:window-focus @app-state)))

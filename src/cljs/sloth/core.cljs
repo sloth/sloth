@@ -35,16 +35,19 @@
   [client]
   (go []
     (let [bookmarks (<! (xmpp/get-bookmarks client))]
-      (swap! st/state assoc :bookmarks bookmarks)
+      (swap! st/app-state assoc :bookmarks bookmarks)
     (doseq [room (:conferences bookmarks)]
-      (let [room (<! (xmpp/join-room client (:bare room) (:local (:user @st/state))))]
+      (let [logged-user (st/get-logged-user)
+            room (<! (xmpp/join-room client
+                                     (:bare room)
+                                     (:local logged-user)))]
         (st/add-room room))))))
 
 (defn- start-presence-watcher
   [client]
   (let [presence-chan (xmpp/presences client)]
     (go-loop [presence (<! presence-chan)]
-      (swap! st/state st/update-presence presence)
+      (swap! st/app-state st/update-presence presence)
       (recur (<! presence-chan)))))
 
 (defn- start-chat-watcher
@@ -80,7 +83,7 @@
   (let [events (browser/listen-focus-events)]
     (go-loop []
       (when-let [event (<! events)]
-        (swap! st/state assoc :window-focus event)
+        (swap! st/app-state assoc :window-focus event)
         (recur)))))
 
 (defn- start-raw-packets-watcher
@@ -95,8 +98,7 @@
 (defn bootstrap-session
   []
   (go
-    (when-let [authdata (:auth @st/state)]
-      ;; TODO: handle error
+    (when-let [authdata (:auth @st/app-state)]
       (let [res (<! (auth/authenticate (:username authdata)
                                        (:password authdata)))]
         (cond
@@ -104,11 +106,12 @@
          (do
            (println "ERROR ON REAUTH")))))
 
-    (let [state @st/state
+    (let [state @st/app-state
           client (:client state)]
 
       ;; Only for debug
       ;; (start-raw-packets-watcher client)
+
       ;; Send initial
       (xmpp/send-presence client (get state :user-presence {}))
 
@@ -123,7 +126,7 @@
 
 (defn mount-root-component
   []
-  (om/root views/app st/state
+  (om/root views/app st/app-state
            {:target (js/document.querySelector "body")}))
 
 (defn start-login-watcher
@@ -144,7 +147,7 @@
   (letfn [(persist [state]
             (let [state (select-keys state [:auth])]
               (assoc! hodgepodge/local-storage :state state)))]
-    (add-watch st/state :persistence #(persist %4))))
+    (add-watch st/app-state :persistence #(persist %4))))
 
 (defn main
   []
