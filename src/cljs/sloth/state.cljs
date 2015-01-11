@@ -1,11 +1,11 @@
 (ns sloth.state
   (:require [om.core :as om :include-macros true]
+            [shodan.console :as console :include-macros true]
             [cuerdas.core :as str]
-            [sloth.types :as types]
-            [shodan.console :as console :include-macros true]))
+            [sloth.types :as types]))
 
 (defonce app-state (atom nil))
-(defonce meta-state (atom nil)
+(defonce meta-state (atom nil))
 
 (defn- initial-state
   "Build initial structure for the
@@ -39,11 +39,11 @@
   state."
   ([]
    (reset! meta-state (initial-meta-state))
-   (reset! state (initial-state)))
+   (reset! app-state (initial-state)))
   ([s]
    (reset! meta-state (initial-meta-state))
    (let [initial (initial-state)]
-     (reset! state (merge initial s)))))
+     (reset! app-state (merge initial s)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Routings
@@ -82,7 +82,7 @@
   corresponding state."
   [{:keys [user client auth]}]
   (swap! meta-state assoc :client client :user user)
-  (swap! state assoc :auth auth))
+  (swap! app-state assoc :auth auth))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Rooms
@@ -103,7 +103,7 @@
      (get rooms roomkey))))
 
 (defn get-current-room
-  ([] (get-current-room @app-state))
+  ([] (get-current-room @meta-state))
   ([state]
    (when-let [roomname (get-in state [:page :room])]
      (get-room state roomname))))
@@ -111,9 +111,7 @@
 (defn set-room-unread-messages
   [room n]
   (let [roomkey (keyword (:local room))]
-    (swap! state
-           (fn [state]
-             (assoc-in state [:rooms roomkey :unread] n)))))
+    (swap! app-state #(assoc-in % [:rooms roomkey :unread] n))))
 
 (defn clear-room-unread-messages
   [room]
@@ -122,18 +120,15 @@
 (defn set-room-subject
   [roomjid subject]
   (let [roomkey (keyword (:local roomjid))]
-    (swap! state (fn [st]
-                   (assoc-in st [:rooms roomkey :subject] subject)))))
+    (swap! app-state #(assoc-in % [:rooms roomkey :subject] subject))))
 
 (defn add-room-invitation
   [invitation]
-  (swap! state (fn [st]
-                 (update-in st [:room-invitations] conj invitation))))
+  (swap! app-state #(update-in % [:room-invitations] conj invitation)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Rooms
+;; Messages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defn insert-group-message
   [message]
@@ -145,29 +140,18 @@
     (when (and (not (:delay message))
                (not= (:local currentroom) roomname))
       (when-let [room (get-room roomname)]
-        (swap! state (fn [st]
-                       (update-in st [:rooms roomkey :unread] inc)))))
+        (swap! app-state #(update-in % [:rooms roomkey :unread] inc))))
 
     (if (contains? message :subject)
       ;; Modify room subject
       (set-room-subject room (:subject message))
       ;; Insert message to state
-      (swap! state (fn [st]
-                     (update-in st [:groupchats recipient] (fnil conj []) message))))))
+      (swap! app-state #(update-in % [:groupchats recipient] (fnil conj []) message)))))
 
 (defn insert-private-message
   [to message]
   (let [recipient (types/get-user-bare to)]
-    ;; Append messages
-    (swap! state (fn [state]
-                   (update-in state [:chats recipient] (fnil conj []) message)))))
-
-(defn join-room
-  ;; TODO: rename
-  [app-state room]
-  (let [type :groupchat
-        from (-> room :from :bare)]
-    (update-in app-state [:conversations type from] (fnil empty []))))
+    (swap! app-state #(update-in % [:chats recipient] (fnil conj []) message))))
 
 (defn update-own-presence
   [app-state presence]
@@ -207,7 +191,7 @@
    (when user
      ;; (console/trace)
      (let [address1 (types/get-user-bare user)
-           address2 (types/get-user-bare (:user state))]
+           address2 (types/get-user-bare (get-logged-user))]
        (if (= address1 address2)
          (:user-presence state)
          (get-others-presence state user))))))
@@ -217,7 +201,7 @@
   (let [roster (->> roster
                     (map (fn [o] [(keyword (types/get-user-local o)) o]))
                     (into {}))]
-    (swap! state assoc :roster roster)))
+    (swap! app-state assoc :roster roster)))
 
 (defn get-contact
   "Get roster entry by nickname."
