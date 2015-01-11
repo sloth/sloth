@@ -12,28 +12,28 @@
                  [ring/ring-core "1.3.2" :exclusions [javax.servlet/servlet-api
                                                       org.clojure/tools.reader]]
                  [cc.qbits/jet "0.5.1"]
-                 [com.cemerick/piggieback "0.1.3"]
-                 [weasel "0.4.2"]
-                 [figwheel "0.1.7-SNAPSHOT"]
+
 
                  ;; Frontend dependencies
-                 [org.clojure/clojurescript "0.0-2511"]
+                 [org.clojure/clojurescript "0.0-2665"]
+                 [org.om/om "0.8.0"]
                  [secretary "1.2.1"]
                  [sablono "0.2.22" :exclusions [com.facebook/react]]
-                 [om "0.8.0-beta3"]
-                 [hodgepodge "0.1.1"]
+                 [hodgepodge "0.1.1" :exclusions [org.clojure/clojurescript]]
                  [cuerdas "0.1.0"]
                  [shodan "0.4.1"]
+
+                 ;; [com.cemerick/piggieback "0.1.3"]
+                 ;; [weasel "0.4.2"]
 
                  ;; Shared dependencies
                  [hiccup-bridge "1.0.1"]
                  [cats "0.2.0" :exclusions [org.clojure/clojure]]]
 
   :source-paths ["src/clj"]
-  :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
-  :plugins [[lein-cljsbuild "1.0.4-SNAPSHOT"]
-            [hiccup-bridge "1.0.1"]
-            [lein-figwheel "0.1.7-SNAPSHOT"]]
+  ;; :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+  :plugins [[lein-cljsbuild "1.0.4"]
+            [hiccup-bridge "1.0.1"]]
   :cljsbuild {:builds
               [{:id "devel"
                 :source-paths ["src/cljs"]
@@ -58,8 +58,4 @@
 
   :jar-exclusions [#"user.clj"]
   :target-path "target/%s"
-  :profiles {:standalone {:main ^:skip-aot sloth.core}}
-  :figwheel {
-   :http-server-root "public"
-   :server-port 3449
-   :css-dirs ["resources/public/styles"]})
+  :profiles {:standalone {:main ^:skip-aot sloth.core}})

@@ -3,19 +3,20 @@
   (:require [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
             [cljs.core.async :refer [<!]]
-            [weasel.repl :as ws-repl]
+            ;; [weasel.repl :as ws-repl]
             ;; [figwheel.client :as fw]
+            ;; [hodgepodge.core :refer [local-storage]]
+            [hodgepodge.core :as hodgepodge]
+            [shodan.console :as console :include-macros true]
+            [cats.core :as m]
+            [cats.monad.either :as either]
             [sloth.config :as config]
             [sloth.auth :as auth]
             [sloth.routing :refer [start-history!]]
             [sloth.state :as st]
             [sloth.xmpp :as xmpp]
             [sloth.views :as views]
-            [sloth.browser :as browser]
-            [hodgepodge.core :refer [local-storage]]
-            [shodan.console :as console :include-macros true]
-            [cats.core :as m]
-            [cats.monad.either :as either]))
+            [sloth.browser :as browser]))
 
 (enable-console-print!)
 
@@ -145,7 +146,7 @@
                                    :client :user :roster :presence :chats :groupchats
                                    :features :page :conversations :window-focus
                                    :bookmarks :rooms)]
-                 (assoc! local-storage :state state)))))
+                 (assoc! hodgepodge/local-storage :state state)))))
 
 (defn main
   []
@@ -154,7 +155,7 @@
   (start-state-persistence)
 
   ;; Restore previously stored state
-  (if-let [storedstate (:state local-storage nil)]
+  (if-let [storedstate (:state hodgepodge/local-storage nil)]
     (st/set-initial-state storedstate)
     (st/set-initial-state))
 
