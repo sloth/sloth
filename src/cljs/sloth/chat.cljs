@@ -27,8 +27,8 @@
   Additionally adds it to the local state because
   p2p messages does not returns like in muc."
   [state to message]
-  (when-let [client (st/get-client state)]
-    (let [user (st/get-logged-user state)
+  (when-let [client (st/get-client)]
+    (let [user (st/get-logged-user)
           msg (types/->chat {:to to
                              :from user
                              :type :chat
@@ -43,7 +43,7 @@
 
 (defn set-status
   [state status]
-  (let [client (st/get-client state)
+  (let [client (st/get-client)
         user-presence (st/get-presence (:user state))]
       (xmpp/send-presence client (assoc user-presence :status status
                                                       :priority 42))))
@@ -76,8 +76,8 @@
     (go
       (let [r (<! (xmpp/join-room client
                                   (:bare room)
-                                  (:local (:user @st/state))))]
-        (st/add-room r)
+                                  (types/get-user-local (st/get-logged-user))))]
+        (st/insert-room r)
         (bookmark-room r)))))
 
 (defn decline-room-invitation

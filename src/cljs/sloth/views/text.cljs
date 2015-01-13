@@ -171,7 +171,7 @@
   [room-name]
   (let [room-local (str/ltrim room-name "#")
         room-route (room-route {:name room-local})]
-    (if-let [maybe-room (st/get-room @st/state room-local)]
+    (if-let [maybe-room (st/get-room @st/app-state room-local)]
       [:a {:href room-route
            :on-click (fn [e]
                        (.preventDefault e)
@@ -192,7 +192,7 @@
   (let [contact-local (str/ltrim contact-name "@")
         contact-url (contact-route {:name contact-local})]
     ;; TODO: if it's the logged-in users name we may want to do something special
-    (if-let [maybe-contact (st/get-contact @st/state contact-local)]
+    (if-let [maybe-contact (st/get-contact @st/app-state contact-local)]
       ;; TODO: mention-user class sets background, doesn't look good with links
       [:a {:href contact-url
            :on-click (fn [e]

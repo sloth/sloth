@@ -41,7 +41,7 @@
             room (<! (xmpp/join-room client
                                      (:bare room)
                                      (:local logged-user)))]
-        (st/add-room room))))))
+        (st/insert-room room))))))
 
 (defn- start-presence-watcher
   [client]
