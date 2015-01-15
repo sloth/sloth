@@ -9,13 +9,14 @@
             [sloth.views.room :refer [room-component]]
             [sloth.views.contact :refer [contact-component]]))
 
-
 (defn- login-page
   [state owner]
+  (console/log "login-page")
   (om/build login-component state))
 
 (defn- home-page
   [state owner]
+  (console/log "home-page")
   [:section#app.client
    [:div.client-sidebar-holder (om/build sidebar-component state)]
    (om/build home-component state)])

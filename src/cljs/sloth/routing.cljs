@@ -1,7 +1,7 @@
 (ns sloth.routing
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [sloth.events :as events]
-            [sloth.state :as st]
+            [sloth.state :as st :refer [app-state]]
             [secretary.core :as secretary :refer-macros [defroute]])
   (:import [goog History]
            [goog.history EventType]))
@@ -34,31 +34,37 @@
   ;; Dispacth initial route
   (secretary/dispatch! (.getToken history)))
 
+(defn set-route
+  "Set route in the current app state."
+  ([name] (set-route name nil))
+  ([name params]
+   (swap! app-state st/set-route name params)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Routes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defroute home-route "/" []
   (if (st/logged-in?)
-    (st/set-route :home)
+    (set-route :home)
     (navigate "/login")))
 
 (defroute login-route "/login" []
   (if (st/logged-in?)
     (navigate "")
-    (st/set-route :login)))
+    (set-route :login)))
 
 (defroute room-route "/room/:name" [name]
   (if (st/logged-in?)
     (do
-      (st/set-route :room {:room name})
+      (set-route :room {:room name})
       ;; TODO: abstract with function instead of direct state manipulation
       (swap! st/app-state #(update-in % [:rooms (keyword name)] assoc :unread 0)))
     (navigate "/login")))
 
 (defroute contact-route "/contact/:name" [name]
   (if (st/logged-in?)
-    (st/set-route :contact {:contact name})
+    (set-route :contact {:contact name})
     (navigate "/login")))
 
 (defroute catch-all-route "*" []

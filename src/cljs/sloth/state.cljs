@@ -5,13 +5,15 @@
             [sloth.types :as types]))
 
 (defonce app-state (atom nil))
-(defonce meta-state (atom nil))
 
 (defn- initial-state
   "Build initial structure for the
   application state."
   []
-  {:user-presence {}
+  {:page {:name :login}
+   :client nil
+   :user nil
+   :user-presence {}
    :features []
    :roster {}
    :presence {}
@@ -23,25 +25,11 @@
    :chats {}
    :groupchats {}})
 
-(defn- initial-meta-state
-  "Build initial structure for the global
-  meta state.
-
-  Global meta state is mainly used for
-  store auth and routing information."
-  []
-  {:page {:name :login}
-   :client nil
-   :user nil})
-
 (defn initialize-state
   "Setup initial application and meta
   state."
-  ([]
-   (reset! meta-state (initial-meta-state))
-   (reset! app-state (initial-state)))
+  ([] (reset! app-state (initial-state)))
   ([s]
-   (reset! meta-state (initial-meta-state))
    (let [initial (initial-state)]
      (reset! app-state (merge initial s)))))
 
@@ -51,15 +39,16 @@
 
 (defn set-route
   "Set the current page with additional paramters."
-  ([name] (set-route name nil))
-  ([name params]
+  ([state name] (set-route state name nil))
+  ([state name params]
    (let [pagestate (merge {:name name} params)]
-     (swap! meta-state assoc :page pagestate))))
+     (assoc state pagestate))))
 
 (defn get-route
   "Get the current route state."
-  []
-  (get @meta-state :page))
+  ([] (get-route @app-state))
+  ([state]
+   (get state :page)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User and Auth
@@ -68,26 +57,30 @@
 (defn logged-in?
   "Check if currently we are in
   loggedin state or not."
-  ([] (logged-in? @meta-state))
+  ([] (logged-in? @app-state))
   ([state]
    (not (nil? (:user state)))))
 
 (defn get-logged-user
   "Get current logged user."
-  []
-  (:user @meta-state))
+  ([] (get-logged-user @app-state))
+  ([state]
+   (get state :user)))
 
 (defn get-client
   "Get current xmpp client instance."
-  []
-  (:client @meta-state))
+  ([] (get-client @app-state))
+  ([state]
+   (get state :client)))
 
 (defn initialize-session
   "Store the current session in
   corresponding state."
-  [{:keys [user client auth]}]
-  (swap! meta-state assoc :client client :user user)
-  (swap! app-state assoc :auth auth))
+  [state {:keys [user client auth]}]
+  (-> state
+      (assoc :client client)
+      (assoc :user user)
+      (assoc :auth auth)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Rooms
@@ -96,9 +89,10 @@
 (defn insert-room
   "Insert room into joined room
   list on app state."
-  [room]
+  [state room]
+  ;; WARNING: why? :jid WTF
   (let [roomid (keyword (get-in room [:jid :local]))]
-    (swap! app-state assoc-in [:rooms roomid] room)))
+    (assoc-in state [:rooms roomid] room)))
 
 (defn get-room
   ([name] (get-room @app-state name))
@@ -108,55 +102,32 @@
      (get rooms roomkey))))
 
 (defn get-current-room
-  ([] (get-current-room @meta-state))
+  ([] (get-current-room @app-state))
   ([state]
    (when-let [roomname (get-in state [:page :room])]
      (get-room state roomname))))
 
 (defn set-room-unread-messages
-  [room n]
-  (let [roomkey (keyword (:local room))]
-    (swap! app-state #(assoc-in % [:rooms roomkey :unread] n))))
+  [state room n]
+  (let [roomid (keyword (:local room))]
+    (assoc-in state [:rooms roomid :unread] n)))
 
 (defn clear-room-unread-messages
-  [room]
-  (set-room-unread-messages room 0))
+  [state room]
+  (set-room-unread-messages state room 0))
 
 (defn set-room-subject
-  [roomjid subject]
-  (let [roomkey (keyword (:local roomjid))]
-    (swap! app-state #(assoc-in % [:rooms roomkey :subject] subject))))
+  [state room subject]
+  (let [roomid (keyword (:local room))]
+    (assoc-in state [:rooms roomid :subject] subject)))
 
 (defn add-room-invitation
-  [invitation]
-  (swap! app-state #(update-in % [:room-invitations] conj invitation)))
+  [state invitation]
+  (update-in state [:room-invitations] conj invitation))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Messages
+;; Presence
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn insert-group-message
-  [message]
-  (let [room (:from message)
-        roomname (:local room)
-        roomkey (keyword roomname)
-        recipient (:bare room)
-        currentroom (get-current-room)]
-    (when (and (not (:delay message))
-               (not= (:local currentroom) roomname))
-      (when-let [room (get-room roomname)]
-        (swap! app-state #(update-in % [:rooms roomkey :unread] inc))))
-
-    (if (contains? message :subject)
-      ;; Modify room subject
-      (set-room-subject room (:subject message))
-      ;; Insert message to state
-      (swap! app-state #(update-in % [:groupchats recipient] (fnil conj []) message)))))
-
-(defn insert-private-message
-  [to message]
-  (let [recipient (types/get-user-bare to)]
-    (swap! app-state #(update-in % [:chats recipient] (fnil conj []) message))))
 
 (defn update-own-presence
   [app-state presence]
@@ -208,6 +179,10 @@
                     (into {}))]
     (swap! app-state assoc :roster roster)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Contacts
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn get-contact
   "Get roster entry by nickname."
   ([nickname] (get-contact @app-state nickname))
@@ -221,6 +196,33 @@
   ([state]
    (->> (get-in state [:page :contact])
         (get-contact state))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Messages
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn insert-group-message
+  [message]
+  (let [room (:from message)
+        roomname (:local room)
+        roomkey (keyword roomname)
+        recipient (:bare room)
+        currentroom (get-current-room)]
+    (when (and (not (:delay message))
+               (not= (:local currentroom) roomname))
+      (when-let [room (get-room roomname)]
+        (swap! app-state #(update-in % [:rooms roomkey :unread] inc))))
+
+    (if (contains? message :subject)
+      ;; Modify room subject
+      (set-room-subject room (:subject message))
+      ;; Insert message to state
+      (swap! app-state #(update-in % [:groupchats recipient] (fnil conj []) message)))))
+
+(defn insert-private-message
+  [to message]
+  (let [recipient (types/get-user-bare to)]
+    (swap! app-state #(update-in % [:chats recipient] (fnil conj []) message))))
 
 (defn get-room-messages
   "Get room messages."
@@ -255,6 +257,11 @@
                              :from (:from (first entries))})))]
     (sequence transformer (get-contact-messages state user))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Other
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn window-focused?
   []
   (= :focus (:window-focus @app-state)))
+
