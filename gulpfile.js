@@ -17,7 +17,7 @@ paths.dist = "resources/public/";
 paths.app = "resources/assets/";
 paths.js = [
     paths.app + "js/stanza/stanzaio.bundle.min.js",
-    paths.app + "js/react/react-0.12.2.min.js"
+    paths.app + "js/react/react-0.12.2.js"
 ];
 paths.scss = paths.app + "scss/**/*.scss";
 
