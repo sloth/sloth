@@ -61,7 +61,7 @@
                 :source-paths ["src/cljs"]
                 :compiler {:output-to "resources/public/js/app.js"
                            :optimizations :whitespace
-                           :static-fns false
+                           :static-fns true
                            :pretty-print true}}]}
 
   :profiles {:standalone {:main ^:skip-aot sloth.core}})
