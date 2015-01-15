@@ -26,7 +26,6 @@
                                             org.clojure/clojurescript]]
                  [cuerdas "0.1.0" :exclusions [org.clojure/clojurescript]]
                  [shodan "0.4.1" :exclusions [org.clojure/clojurescript]]
-                 [rum "0.2.0"]
 
                  ;; Commented due to temporary compatibility issue with the
                  ;; last clojurescript compiler version.
