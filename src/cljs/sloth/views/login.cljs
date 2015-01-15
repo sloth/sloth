@@ -2,6 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
+            [shodan.console :as console :include-macros true]
             [cuerdas.core :as str]
             [cljs.core.async :refer [<!]]
             [sloth.auth :as auth]
@@ -11,67 +12,81 @@
             [sloth.events :as events]
             [cats.monad.either :as either]))
 
-(defn try-login
-  [owner {:keys [username password]}]
+(defn login
+  [owner {:keys [username password] :as local}]
   (go
+    (console/log "login" (pr-str local))
     (let [msession (<! (auth/authenticate username password))]
       (cond
        (either/right? msession)
        (routing/navigate "")
 
        (either/left? msession)
-       (let [state (om/get-state owner)]
-         (om/set-state! owner (assoc state :error "Wrong credentials!")))))))
+       (om/set-state! owner :error "Wrong credentials!")))))
 
-(defn- on-enter
-  [{:keys [username password] :as state} owner]
-  ;; TODO: valid username?
-  (when (every? (complement str/empty?) [username password])
-    (try-login owner state)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Events
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- onkeyup
-  [state owner event]
-  (when (events/pressed-enter? event)
-    (on-enter state owner)))
+(defn- on-submit
+  [event state owner local]
+  ;; (.preventDefault event)
+  (console/log "submit")
+  (login owner local))
+
+(defn- on-username-changed
+  [event state owner local]
+  (let [value (.-value (.-target event))]
+    (om/set-state! owner :username value)))
+
+(defn- on-password-changed
+  [event state owner local]
+  (let [value (.-value (.-target event))]
+    (om/set-state! owner :password value)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Component
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- render-state
+  [state owner {:keys [username password] :as local}]
+  (html
+   [:div.lightbox-shadow
+    [:div.lightbox
+     [:div.login
+      [:div.login-form
+       [:div.logo]
+       [:form {:on-submit #(on-submit % state owner local)}
+        [:input {:type "text"
+                 :placeholder "you@sloth.land"
+                 :auto-complete "off"
+                 :value username
+                 :autofocus true
+                 :on-change #(on-username-changed % state owner local)}]
+        [:input {:type "password"
+                 :value password
+                 :placeholder "I ♥ sloths"
+                 :on-change #(on-password-changed % state owner local)}]
+        [:input {:type "submit"
+                 :value "Login"}]]]
+      [:div.dat-sloth]
+      [:div.dat-text "Open source team communication plataform"]
+      [:div.dat-bubble-arrow]]
+     (when (:error state)
+       [:p (:error state)])]]))
 
 (defn login-component
-  [_ owner]
+  [state owner]
   (reify
     om/IDisplayName
-    (display-name [_] "Login")
+    (display-name [_] "login")
 
     om/IInitState
     (init-state [_]
       {:username ""
        :password ""
-       :error ""})
+       :error nil})
 
     om/IRenderState
-    (render-state [_ state]
-      (html [:div.lightbox-shadow
-             [:div.lightbox
-              [:div.login
-               [:div.login-form
-                [:div.logo]
-                [:form
-                 [:input {:type "text"
-                          :placeholder "you@sloth.land"
-                          :autocomplete "off"
-                          :autofocus true
-                          :on-change (fn [ev]
-                                       (om/set-state! owner (assoc state :username (.-value (.-target ev)))))
-                          :default-value (:username state)}]
-                 [:input {:type "password"
-                          :placeholder "I ♥ sloths"
-                          :on-change (fn [ev]
-                                      (om/set-state! owner (assoc state :password (.-value (.-target ev)))))
-                          :default-value (:password state)
-                          :on-key-up (partial onkeyup state owner)}]
-                 [:button {:on-click (fn [ev]
-                                       (.preventDefault ev)
-                                       (try-login owner state))} "Login"]]]
-               [:div.dat-sloth]
-               [:div.dat-text "Open source team communication plataform"]
-               [:div.dat-bubble-arrow]]]
-             (when (:error state)
-               [:p (:error state)])]))))
+    (render-state [_ local]
+      (render-state state owner local))))
