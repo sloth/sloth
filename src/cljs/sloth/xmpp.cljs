@@ -107,6 +107,7 @@
                   (.off client "session:*"))]
     (connect client)
     (.on client "session:*" (fn [ev rjid]
+                              (console/log "Kaka")
                               (condp = ev
                                 "session:started"
                                 (do
@@ -124,11 +125,13 @@
 (defn authenticate
   [username password]
   (go
+    (console/log "xmpp/authenticate" username password)
     (let [config (<! (config/get-xmpp-config))
           client (-> config
                      (assoc :jid username :password password)
                      (create-client))
           muser  (<! (start-session client))]
+      (console/log (pr-str muser))
       (m/>>= muser
              (fn [user]
                (m/return {:user user

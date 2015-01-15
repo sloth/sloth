@@ -7,45 +7,55 @@
             [sloth.views.sidebar :refer [sidebar-component]]
             [sloth.views.home :refer [home-component]]
             [sloth.views.room :refer [room-component]]
-            [sloth.views.contact :refer [contact-component]]))
+            [sloth.views.contact :refer [contact-component]]
+            [sloth.react :as react]
+))
 
+;; (defn- login-page
+;;   [state owner]
+;;   (om/build login-component state))
 
-(defn- login-page
-  [state owner]
-  (om/build login-component state))
+;; (defn- home-page
+;;   [state owner]
+;;   [:section#app.client
+;;    [:div.client-sidebar-holder (om/build sidebar-component state)]
+;;    (om/build home-component state)])
 
-(defn- home-page
-  [state owner]
-  [:section#app.client
-   [:div.client-sidebar-holder (om/build sidebar-component state)]
-   (om/build home-component state)])
+;; (defn- room-page
+;;   [state owner]
+;;   (let [room-name (get-in state [:page :room])
+;;         r (st/get-room state room-name)]
+;;     [:section#app.client
+;;      [:div.client-sidebar-holder (om/build sidebar-component state)]
+;;      (om/build room-component state)]))
 
-(defn- room-page
-  [state owner]
-  (let [room-name (get-in state [:page :room])
-        r (st/get-room state room-name)]
-    [:section#app.client
-     [:div.client-sidebar-holder (om/build sidebar-component state)]
-     (om/build room-component state)]))
+;; (defn- contact-page
+;;   [state owner]
+;;   (let [name (get-in state [:page :contact])]
+;;     [:section#app.client
+;;      [:div.client-sidebar-holder (om/build sidebar-component state)]
+;;      (om/build contact-component state)]))
 
-(defn- contact-page
-  [state owner]
-  (let [name (get-in state [:page :contact])]
-    [:section#app.client
-     [:div.client-sidebar-holder (om/build sidebar-component state)]
-     (om/build contact-component state)]))
+(defn- render-app
+  [meta-state app-state]
+  (let [page (get-in @meta-state [:page :name])]
+    (html
+     (case page
+       ;; :login [:span "Login"]
+       :login (login-component meta-state app-state)
+       ;; :home (home-page state owner)
+       ;; :room (room-page state owner)
+       ;; :contact (contact-page state owner)
+       [:span "No page found"]))))
 
-(defn app [state owner]
-  (reify
-    om/IDisplayName
-    (display-name [_] "sloth")
+(def app (react/component {:render render-app}))
 
-    om/IRender
-    (render [_]
-      (let [page (get-in state [:page :state])]
-        (html (case page
-                :login (login-page state owner)
-                :home (home-page state owner)
-                :room (room-page state owner)
-                :contact (contact-page state owner)
-                nil))))))
+(defn mount
+  []
+  (let [component  (app st/meta-state st/app-state)
+        domelement (.-body js/document)
+        rcomponent (react/mount component domelement)
+        renderfn   (fn [_ _ _ _]
+                     (react/request-render rcomponent))]
+    (add-watch st/app-state :react renderfn)
+    (add-watch st/meta-state :react renderfn)))

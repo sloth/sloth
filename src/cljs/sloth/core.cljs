@@ -126,8 +126,9 @@
 
 (defn mount-root-component
   []
-  (om/root views/app st/app-state
-           {:target (js/document.querySelector "body")}))
+  (views/mount))
+  ;; (om/root views/app st/app-state
+  ;;          {:target (js/document.querySelector "body")}))
 
 (defn start-login-watcher
   "Watch login changes and initialize xmpp session."
