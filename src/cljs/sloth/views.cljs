@@ -35,17 +35,26 @@
      [:div.client-sidebar-holder (om/build sidebar-component state)]
      (om/build contact-component state)]))
 
-(defn app [state owner]
+(defn app
+  [state owner]
   (reify
     om/IDisplayName
     (display-name [_] "sloth")
 
     om/IRender
     (render [_]
-      (let [page (get-in state [:page :state])]
-        (html (case page
-                :login (login-page state owner)
-                :home (home-page state owner)
-                :room (room-page state owner)
-                :contact (contact-page state owner)
-                nil))))))
+      (let [route (st/get-route)]
+        (console/log "app$render" (pr-str route))
+        (condp = (:name route)
+          :login (login-page state owner)
+          :home (home-page state owner)
+          :room (room-page state owner)
+          :contact (contact-page state owner)
+          nil)))))
+
+(defn mount-root-component
+  "Mount the main om component."
+  []
+  (let [bodyel (js/document.querySelector "body")
+        component (om/root app st/app-state {:target bodyel})]
+    (add-watch st/meta-state :changes #(om/refresh! component))))

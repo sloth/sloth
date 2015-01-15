@@ -164,6 +164,6 @@
   (start-history!)
 
   ;; Mount main om component
-  (mount-root-component))
+  (views/mount-root-component))
 
 (main)
