@@ -56,6 +56,11 @@
    (let [pagestate (merge {:name name} params)]
      (swap! meta-state assoc :page pagestate))))
 
+(defn get-route
+  "Get the current route state."
+  []
+  (get @meta-state :page))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User and Auth
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
