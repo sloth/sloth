@@ -19,7 +19,7 @@
     (let [msession (<! (auth/authenticate username password))]
       (cond
        (either/right? msession)
-       (routing/navigate "")
+       (routing/navigate "/")
 
        (either/left? msession)
        (om/set-state! owner :error "Wrong credentials!")))))
@@ -29,20 +29,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn- on-submit
-  [event state owner local]
+  [event owner local]
   ;; (.preventDefault event)
-  (console/log "submit")
   (login owner local))
 
 (defn- on-username-changed
-  [event state owner local]
+  [event owner local]
   (let [value (.-value (.-target event))]
-    (om/set-state! owner :username value)))
+    (om/set-state! owner (assoc local :username value))))
 
 (defn- on-password-changed
-  [event state owner local]
+  [event owner local]
   (let [value (.-value (.-target event))]
-    (om/set-state! owner :password value)))
+    (om/set-state! owner (assoc local :password value))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Component
@@ -56,17 +55,17 @@
      [:div.login
       [:div.login-form
        [:div.logo]
-       [:form {:on-submit #(on-submit % state owner local)}
+       [:form {:on-submit #(on-submit % owner local)}
         [:input {:type "text"
                  :placeholder "you@sloth.land"
                  :auto-complete "off"
                  :value username
                  :autofocus true
-                 :on-change #(on-username-changed % state owner local)}]
+                 :on-change #(on-username-changed % owner local)}]
         [:input {:type "password"
                  :value password
                  :placeholder "I ♥ sloths"
-                 :on-change #(on-password-changed % state owner local)}]
+                 :on-change #(on-password-changed % owner local)}]
         [:input {:type "submit"
                  :value "Login"}]]]
       [:div.dat-sloth]
