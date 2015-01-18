@@ -53,7 +53,7 @@
               [{:id "devel"
                 :source-paths ["src/cljs"]
                 :compiler {:output-to "resources/public/js/app.js"
-                           :output-dir "resources/public/js/out"
+                           :output-dir "resources/public/js"
                            :optimizations :none
                            :source-map true}}
 
@@ -65,4 +65,3 @@
                            :pretty-print true}}]}
 
   :profiles {:standalone {:main ^:skip-aot sloth.core}})
-
