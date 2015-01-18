@@ -11,30 +11,28 @@
 
 (defn- login-page
   [state owner]
-  (console/log "login-page")
   (om/build login-component state))
 
 (defn- home-page
   [state owner]
-  (console/log "home-page")
-  [:section#app.client
-   [:div.client-sidebar-holder (om/build sidebar-component state)]
-   (om/build home-component state)])
+  (html [:section#app.client
+         [:div.client-sidebar-holder (om/build sidebar-component state)]
+         (om/build home-component state)]))
 
 (defn- room-page
   [state owner]
   (let [room-name (get-in state [:page :room])
         r (st/get-room state room-name)]
-    [:section#app.client
-     [:div.client-sidebar-holder (om/build sidebar-component state)]
-     (om/build room-component state)]))
+    (html [:section#app.client
+           [:div.client-sidebar-holder (om/build sidebar-component state)]
+           (om/build room-component state)])))
 
 (defn- contact-page
   [state owner]
   (let [name (get-in state [:page :contact])]
-    [:section#app.client
-     [:div.client-sidebar-holder (om/build sidebar-component state)]
-     (om/build contact-component state)]))
+    (html [:section#app.client
+           [:div.client-sidebar-holder (om/build sidebar-component state)]
+           (om/build contact-component state)])))
 
 (defn app
   [state owner]
@@ -45,7 +43,6 @@
     om/IRender
     (render [_]
       (let [route (st/get-route)]
-        (console/log "app$render" (pr-str route))
         (condp = (:name route)
           :login (login-page state owner)
           :home (home-page state owner)
