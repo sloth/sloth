@@ -21,7 +21,7 @@
                  [org.om/om "0.8.0" :exclusions [org.clojure/clojurescript]]
                  [secretary "1.2.1" :exclusions [org.clojure/clojurescript]]
                  [sablono "0.3.0-SNAPSHOT" :exclusions [com.facebook/react org.clojure/clojurescript]]
-                 [hodgepodge "0.1.2"]
+                 [hodgepodge "0.1.3"]
                  [cats "0.2.0" :exclusions [org.clojure/clojure
                                             org.clojure/clojurescript]]
                  [cuerdas "0.1.0" :exclusions [org.clojure/clojurescript]]
