@@ -92,7 +92,7 @@
          :body (.-body rchat)
          :type (case chattype
                  :chat ::chat
-                 :groupchat :groupchat)}
+                 :groupchat ::groupchat)}
         (merge (if-let [delay (.-delay rchat)]
                  {:timestamp (.-stamp delay)
                   :delay (js->clj delay)}
@@ -113,9 +113,9 @@
                             timestamp)))))
 
 
+
 ;; (defmulti get-recipient-nickname
 ;;   "Get recipient nickname from message.
 
 ;;   The purpose of this function is make uniform access
 ;;   to local representation
-

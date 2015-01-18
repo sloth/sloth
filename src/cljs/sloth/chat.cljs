@@ -13,11 +13,11 @@
 (defn send-group-message
   [state room message]
   (let [client (:client state)
-        recipient (:bare room)]
+        msg (types/->chat {:to room
+                           :type :groupchat
+                           :body message})]
     (when client
-      (xmpp/send-message client {:to recipient
-                                 :type :groupchat
-                                 :body message}))))
+      (xmpp/send-message client msg))))
 
 (defn send-personal-message
   "Given a state, recipient and body of message
