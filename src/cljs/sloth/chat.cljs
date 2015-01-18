@@ -77,7 +77,7 @@
       (let [r (<! (xmpp/join-room client
                                   (:bare room)
                                   (types/get-user-local (st/get-logged-user))))]
-        (st/insert-room r)
+        (swap! st/app-state st/insert-room r)
         (bookmark-room r)))))
 
 (defn decline-room-invitation

@@ -39,10 +39,10 @@
 
 (defn set-route
   "Set the current page with additional paramters."
-  ([state name] (set-route state name nil))
+  ([state name] (set-route state name {}))
   ([state name params]
    (let [pagestate (merge {:name name} params)]
-     (assoc state pagestate))))
+     (assoc state :page pagestate))))
 
 (defn get-route
   "Get the current route state."
@@ -215,7 +215,7 @@
 
     (if (contains? message :subject)
       ;; Modify room subject
-      (set-room-subject room (:subject message))
+      (swap! app-state set-room-subject room (:subject message))
       ;; Insert message to state
       (swap! app-state #(update-in % [:groupchats recipient] (fnil conj []) message)))))
 
@@ -264,4 +264,3 @@
 (defn window-focused?
   []
   (= :focus (:window-focus @app-state)))
-

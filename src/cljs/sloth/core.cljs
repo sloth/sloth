@@ -41,7 +41,7 @@
             room (<! (xmpp/join-room client
                                      (:bare room)
                                      (:local logged-user)))]
-        (st/insert-room room))))))
+        (swap! st/app-state st/insert-room room))))))
 
 (defn- start-presence-watcher
   [client]
@@ -70,12 +70,12 @@
 
     (go-loop []
       (when-let [subject (<! subjects)]
-        (st/set-room-subject (:room subject) (:subject subject))
+        (swap! st/app-state st/set-room-subject (:room subject) (:subject subject))
         (recur)))
 
     (go-loop []
       (when-let [invitation (<! invitations)]
-        (st/add-room-invitation invitation)
+        (swap! st/app-state st/add-room-invitation invitation)
         (recur)))))
 
 (defn- start-focus-watcher
@@ -138,7 +138,7 @@
               (bootstrap-session)
               (.requestPermission js/Notification)
               (swap! bootstrap not)))]
-    (add-watch st/meta-state :auth watcher)))
+    (add-watch st/app-state :auth watcher)))
 
 (defn start-state-persistence
   "Watch state changes and persist them

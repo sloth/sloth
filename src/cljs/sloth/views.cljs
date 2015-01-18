@@ -58,4 +58,4 @@
   []
   (let [bodyel (js/document.querySelector "body")
         component (om/root app st/app-state {:target bodyel})]
-    (add-watch st/meta-state :changes #(om/refresh! component))))
+    (add-watch st/app-state :changes #(om/refresh! component))))

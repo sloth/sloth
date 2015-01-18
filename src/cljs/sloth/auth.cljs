@@ -15,5 +15,6 @@
     (let [msession (<! (xmpp/authenticate username password))]
       (m/>>= msession
              (fn [session]
-               (st/initialize-session session)
+               (swap! st/app-state st/initialize-session session)
+
                (m/return session))))))
