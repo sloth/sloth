@@ -171,8 +171,9 @@ systemctl start ejabberd
 In this case, if you want interact with server using _ejabberdctl_ command, you should
 change to ejabberd user (using `su - ejabberd`)
 
-I recommend setup empty password for ejabberd user for make easy access to it
-from your standard user, avoiding the the step of jump to root user.
+For example, I recommend to setup an empty password for ejabberd user. This will allow 
+you to switch to the ejabberd user without the need to remember another password or 
+using the root user first.
 
 
 Now, as _ejabberd_ user, create an user in ejabberd server:
